@@ -77,6 +77,18 @@
     .btn-primary:active:not(:disabled) { transform: translateY(0); }
     .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
+    /* File Drop Zone */
+    .drop-zone {
+      border: 2px dashed rgba(99,102,241,0.4);
+      background: rgba(10,11,26,0.6);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .drop-zone.dragover {
+      background: rgba(99,102,241,0.1);
+      border-color: rgba(99,102,241,0.8);
+    }
+
     /* Loading spinner */
     .spinner {
       border: 2px solid rgba(255,255,255,0.15);
@@ -98,6 +110,14 @@
       font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.02em;
+    }
+    
+    .exp-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      margin-left: 6px;
+      background: rgba(0,0,0,0.2);
     }
 
     /* Timeline */
@@ -139,14 +159,12 @@
 </head>
 <body class="min-h-screen text-slate-100">
 
-  <!-- Background decoration -->
   <div class="fixed inset-0 pointer-events-none hero-glow"></div>
   <div class="fixed top-60 right-10 w-72 h-72 rounded-full bg-purple-600/5 blur-3xl pointer-events-none"></div>
   <div class="fixed bottom-20 left-10 w-96 h-96 rounded-full bg-brand-600/5 blur-3xl pointer-events-none"></div>
 
   <div class="relative max-w-5xl mx-auto px-4 py-12">
 
-    <!-- Header -->
     <header class="text-center mb-14">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs text-brand-300 font-medium mb-6 tracking-wide uppercase">
         <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
@@ -156,54 +174,59 @@
         <span class="gradient-text">infi</span><span class="text-white">Onboard</span>
       </h1>
       <p class="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
-        Paste a resume and job description. Our Adaptive Pathing Algorithm identifies skill gaps and maps your personalized training journey — instantly.
+        Upload a Resume PDF and paste a Job Description. Our Adaptive Pathing Algorithm identifies skillset & experience gaps, mapping your personalized training journey.
       </p>
     </header>
 
-    <!-- Input Panel -->
     <div class="grid md:grid-cols-2 gap-4 mb-6">
-      <!-- Resume -->
-      <div class="glass rounded-2xl p-5">
+      
+      <!-- Resume Upload -->
+      <div class="glass rounded-2xl p-5 flex flex-col">
         <div class="flex items-center gap-2 mb-3">
           <div class="w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center">
             <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <label class="font-semibold text-sm text-slate-200" for="resumeInput">Candidate Resume</label>
+          <label class="font-semibold text-sm text-slate-200">Candidate Resume (PDF)</label>
         </div>
-        <textarea
-          id="resumeInput"
-          class="w-full rounded-xl p-3"
-          placeholder="Paste the candidate's resume here...
-
-Example:
-Experienced Java developer with SQL skills.
-3 years building REST APIs with Spring Boot.
-Familiar with Git and Linux systems."
-        ></textarea>
+        
+        <div id="dropZone" class="drop-zone flex-1 rounded-xl flex flex-col items-center justify-center p-6 text-center" onclick="document.getElementById('fileInput').click()">
+          <input type="file" id="fileInput" class="hidden" accept=".pdf" onchange="handleFileSelect(event)">
+          <svg class="w-10 h-10 text-brand-400 mb-3 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <p class="text-sm font-medium text-slate-200 mb-1" id="fileNameDisplay">Click to upload or drag & drop</p>
+          <p class="text-xs text-slate-500">PDF documents only</p>
+        </div>
+        
+        <div class="mt-3 relative hidden" id="textFallbackWrap">
+          <textarea
+            id="resumeTextFallback"
+            class="w-full rounded-xl p-3"
+            placeholder="Or paste resume text here..."
+            style="min-height: 120px;"
+          ></textarea>
+        </div>
       </div>
 
       <!-- JD -->
       <div class="glass rounded-2xl p-5">
-        <div class="flex items-center gap-2 mb-3">
-          <div class="w-8 h-8 rounded-lg bg-accent-500/20 flex items-center justify-center">
-            <svg class="w-4 h-4 text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <label class="font-semibold text-sm text-slate-200" for="jdInput">Job Description</label>
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-accent-500/20 flex items-center justify-center">
+                <svg class="w-4 h-4 text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <label class="font-semibold text-sm text-slate-200" for="jdInput">Job Description</label>
+            </div>
+            <span class="text-xs text-slate-500 bg-black/20 px-2 py-1 rounded">Cross-Domain Supported</span>
         </div>
         <textarea
           id="jdInput"
-          class="w-full rounded-xl p-3"
-          placeholder="Paste the job description here...
-
-Example:
-We are looking for a Python developer with
-React, AWS cloud, Docker containerization,
-and Machine Learning experience."
-        ></textarea>
+          class="w-full rounded-xl p-3 h-[240px]"
+        >Looking for an operational leader with B2B Sales experience and Warehouse logistics knowledge. Must be familiar with HR compliance, CRM pipelines, and have a track record of driving outbound growth. Customer Success experience is a major plus.</textarea>
       </div>
     </div>
 
@@ -224,7 +247,6 @@ and Machine Learning experience."
     <!-- Results Section -->
     <div id="results" class="hidden space-y-6">
 
-      <!-- Summary Card -->
       <div id="summaryCard" class="glass-strong rounded-2xl p-6"></div>
 
       <!-- Skills Overview -->
@@ -250,20 +272,56 @@ and Machine Learning experience."
     <!-- Error -->
     <div id="errorBox" class="hidden glass rounded-2xl p-5 border border-red-500/30 text-red-400 text-sm"></div>
 
-    <!-- Footer -->
     <footer class="text-center mt-14 text-slate-600 text-xs">
-      InfiOnboard · AI-Adaptive Onboarding Engine · Powered by FastAPI + SQLite
+      InfiOnboard · NLP Simulated Extraction · Hackathon Submission
     </footer>
   </div>
 
   <script>
     const API_BASE = window.location.origin;
+    let selectedFile = null;
+
+    // Drag and drop handlers
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelect({ target: fileInput });
+      }
+    });
+
+    function handleFileSelect(event) {
+      if (event.target.files.length > 0) {
+        selectedFile = event.target.files[0];
+        fileNameDisplay.innerHTML = `<span class="text-brand-400 border-b border-brand-400/30 pb-0.5">${selectedFile.name}</span>`;
+        // Hide text fallback if file is uploaded
+        document.getElementById('textFallbackWrap').classList.add('hidden');
+      }
+    }
+
+    // Toggle text fallback simply by double-clicking dropzone (hidden feature)
+    fileNameDisplay.ondblclick = (e) => {
+        e.stopPropagation();
+        document.getElementById('textFallbackWrap').classList.toggle('hidden');
+    }
 
     function setLoading(loading) {
       const btn = document.getElementById('analyzeBtn');
       btn.disabled = loading;
       btn.innerHTML = loading
-        ? `<span class="spinner"></span> Analyzing...`
+        ? `<span class="spinner"></span> Parsing & Analyzing...`
         : `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Analyze Skill Gap`;
     }
 
@@ -272,14 +330,20 @@ and Machine Learning experience."
       return `<span class="skill-pill ${cls[level] || ''}">${level}</span>`;
     }
 
-    function skillPill(skill, type) {
+    function skillPill(skillObj, type) {
+      // skillObj can be just a string (for gap) or {skill: name, level: exp} (for resume/jd)
+      const isDict = typeof skillObj === 'object';
+      const name = isDict ? skillObj.skill : skillObj;
+      const level = isDict ? skillObj.level : '';
+      
       const styles = {
         resume: 'background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)',
         jd: 'background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.25)',
         gap: 'background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25)',
-        common: 'background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.25)'
       };
-      return `<span class="skill-pill" style="${styles[type]}">${skill}</span>`;
+      
+      const levelHtml = level ? `<span class="exp-badge">${level[0]}</span>` : '';
+      return `<span class="skill-pill" style="${styles[type]}">${name}${levelHtml}</span>`;
     }
 
     function renderSkillBox(title, skills, type, icon, color) {
@@ -327,7 +391,7 @@ and Machine Learning experience."
     }
 
     async function analyzeGap() {
-      const resume = document.getElementById('resumeInput').value.trim();
+      const resumeText = document.getElementById('resumeTextFallback').value.trim();
       const jd = document.getElementById('jdInput').value.trim();
       const errBox = document.getElementById('errorBox');
       const results = document.getElementById('results');
@@ -335,15 +399,20 @@ and Machine Learning experience."
       errBox.classList.add('hidden');
       results.classList.add('hidden');
 
-      if (!resume) { errBox.textContent = 'Please enter the candidate resume text.'; errBox.classList.remove('hidden'); return; }
+      if (!selectedFile && !resumeText) { errBox.textContent = 'Please upload a PDF or double-tap the box to paste text.'; errBox.classList.remove('hidden'); return; }
       if (!jd) { errBox.textContent = 'Please enter the job description text.'; errBox.classList.remove('hidden'); return; }
 
       setLoading(true);
+      
+      const formData = new FormData();
+      if (selectedFile) formData.append('resume_file', selectedFile);
+      if (resumeText) formData.append('resume_text', resumeText);
+      formData.append('jd_text', jd);
+
       try {
         const resp = await fetch(`${API_BASE}/api/analyze`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resume_text: resume, jd_text: jd })
+          body: formData
         });
 
         if (!resp.ok) {
@@ -362,10 +431,9 @@ and Machine Learning experience."
     }
 
     function renderResults(data) {
-      // Summary
       const hasCourses = data.pathway.length > 0;
-      const summaryColor = data.skill_gap.length === 0 ? '#4ade80' : '#fb923c';
       const summaryIcon = data.skill_gap.length === 0 ? '🎉' : '🎯';
+      
       document.getElementById('summaryCard').innerHTML = `
         <div class="flex items-start gap-4">
           <div class="text-3xl">${summaryIcon}</div>
@@ -380,13 +448,14 @@ and Machine Learning experience."
           </div>
         </div>`;
 
-      // Skills Overview
+      // Convert dicts {"skill": "level"} to array objects for rendering
+      const formatDict = (dict) => Object.entries(dict).map(([k, v]) => ({skill: k, level: v}));
+      
       document.getElementById('skillsOverview').innerHTML =
-        renderSkillBox('Resume Skills', data.resume_skills, 'resume', '📄', '#4ade80') +
-        renderSkillBox('JD Requirements', data.jd_skills, 'jd', '💼', '#fb923c') +
-        renderSkillBox('Skill Gaps', data.skill_gap, 'gap', '🔍', '#f87171');
+        renderSkillBox('Resume NLP Output', formatDict(data.resume_skills), 'resume', '📄', '#4ade80') +
+        renderSkillBox('JD Extracted Requirements', formatDict(data.jd_skills), 'jd', '💼', '#fb923c') +
+        renderSkillBox('Identified Skill Gaps', data.skill_gap, 'gap', '🔍', '#f87171');
 
-      // Timeline
       const timeline = document.getElementById('timeline');
       if (data.pathway.length === 0) {
         timeline.innerHTML = `<div class="text-center py-8 text-slate-500">
@@ -400,11 +469,6 @@ and Machine Learning experience."
       document.getElementById('results').classList.remove('hidden');
       document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-
-    // Allow Ctrl+Enter to submit
-    document.addEventListener('keydown', e => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyzeGap();
-    });
   </script>
 </body>
 </html>

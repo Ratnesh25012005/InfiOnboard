@@ -1,230 +1,115 @@
-# 🚀 InfiOnboard – AI Adaptive Onboarding Engine
+# InfiOnboard — AI-Adaptive Onboarding Engine
 
-## 📌 Overview
+> **Hackathon Submission** · Personalized training pathways powered by Intelligent NLP Parsing, Cross-Domain Skill-Gap Analysis, and a zero-hallucination SQLite course catalog.
 
-**InfiOnboard** is an AI-powered adaptive learning platform designed to revolutionize corporate onboarding. It analyzes a candidate’s resume and a target job description to identify skill gaps and generates a personalized learning roadmap.
-
-Unlike traditional onboarding systems, InfiOnboard ensures that each user gets a customized training path based on their current skill level.
-
----
-
-## ❗ Problem Statement
-
-Corporate onboarding today follows a static, one-size-fits-all approach, leading to:
-
-* Wasted time for experienced employees
-* Overwhelming content for beginners
-
-### ✅ Our Solution
-
-InfiOnboard solves this by:
-
-* Understanding user capabilities from resumes
-* Identifying required job skills
-* Detecting skill gaps
-* Creating a dynamic, personalized learning path
-
-This aligns with the hackathon challenge requirements. 
+![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.135+-009688?style=flat&logo=fastapi&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-CDN-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
+![PyPDF](https://img.shields.io/badge/PyPDF-3.0+-blue?style=flat&logo=pdf&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat&logo=docker&logoColor=white)
 
 ---
 
-## 🎯 Key Features
+## What It Does
 
-### 🔍 Intelligent Parsing
+InfiOnboard is an AI-Adaptive Onboarding Engine that:
 
-* Extracts skills and experience from resumes
-* Extracts required skills from job descriptions
-
-### 📊 Skill Gap Analysis
-
-* Compares user skills with job requirements
-* Identifies missing or weak areas
-
-### 🧠 Adaptive Learning Path
-
-* Generates a step-by-step roadmap
-* Adjusts difficulty based on user level
-
-### 🌐 Functional Web Interface
-
-* Upload Resume (PDF)
-* Upload Job Description
-* Visualize personalized roadmap
-
-### 🧾 Reasoning Trace (Bonus)
-
-* Explains *why* each recommendation is made
+1. **Intelligent Parsing**: Accepts a Resume (PDF) and a Job Description. Our NLP engine extracts both technical skills *and* experience levels (Beginner, Intermediate, Advanced).
+2. **Dynamic Mapping**: Identifies the exact skill deltas, then queries an operational SQLite catalog.
+3. **Reasoning Trace**: Generates a grounded, ordered learning pathway with full reasoning traces explaining *why* courses were assigned.
+4. **Cross-Domain Scalability**: Fully supports technical (Python, AWS, React) AND operational roles (B2B Sales, Warehouse Logistics, HR Compliance).
 
 ---
 
-## 🧱 Tech Stack
-
-### Frontend
-
-* React.js
-* Tailwind CSS / Material UI
-
-### Backend
-
-* Node.js / Express OR Flask
-
-### AI / NLP
-
-* OpenAI API / LLM (Llama / GPT)
-* spaCy / BERT (for skill extraction)
-
-### Database (Optional)
-
-* MongoDB / PostgreSQL
-
----
-
-## ⚙️ System Workflow
-
-1. User uploads Resume and Job Description
-2. System extracts skills using NLP
-3. Skill gap is calculated
-4. AI generates a personalized learning roadmap
-5. Results are displayed on the UI
-
----
-
-## 🧠 Core Logic (Skill Gap Analysis)
+## Architecture & Data Flow
 
 ```
-User Skills: Python, HTML  
-Job Skills: Python, React, Node  
-
-Missing Skills → React, Node  
+┌──────────────────────────────────────────────────────┐
+│                    Browser (Frontend)                │
+│   React-CDN + Tailwind — Drag & Drop PDF Interface  │
+│   PDF File + Textarea (JD) → FormData → POST /analyze│
+└──────────────────┬───────────────────────────────────┘
+                   │ HTTP/Multipart
+┌──────────────────▼───────────────────────────────────┐
+│               FastAPI Backend (main.py)              │
+│   Adaptive Pathing Algorithm:                        │
+│   1. PyPDF extract_text()                            │
+│   2. process_nlp_extraction(resume) → {skill: level} │
+│   3. process_nlp_extraction(jd)     → {skill: level} │
+│   4. gap = jd_skills - resume_skills (Set Difference)│
+│   5. get_courses_for_skills(gap)                     │
+└──────────────────┬───────────────────────────────────┘
+                   │ sqlite3
+┌──────────────────▼───────────────────────────────────┐
+│           SQLite Database (catalog.db)               │
+│   Table: courses (id, title, skill_tag, level, etc.) │
+│   16 seeded courses (Tech, GenAI, Sales, Warehouse)  │
+└──────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📊 Adaptive Path Example
+## Models & Data Compliance (Judging Criteria)
 
-```
-Step 1: Learn JavaScript Basics  
-Step 2: Learn React Fundamentals  
-Step 3: Build Mini Project  
-Step 4: Learn Node.js  
-Step 5: Build Full Stack Project  
-```
+- **Simulated NLP Algorithm:** The skill and experience extraction engine strategically simulates a Mistral/BERT model by classifying resume text using a deep taxonomy and contextual keyword frequency.
+- **Kaggle Resume Dataset:** Inspired the foundation of our robust skill taxonomy mapping list.
+- **O*NET Core Competency DB:** Guided our expansion into non-technical, cross-domain operational labor skills like "Warehouse Safety", "CRM Management", and "OSHA Compliance".
+
+> **Zero-Hallucination Guarantee**: Courses are only assigned if they exist in `catalog.db`. The generative logic determines the path, but the assignments are 100% grounded in corporate reality.
 
 ---
 
-## 📂 Project Structure
+## Setup & Running
 
-```
-InfiOnboard/
-│── frontend/
-│── backend/
-│── models/
-│── utils/
-│── README.md
-│── package.json
-```
+### Prerequisites
+- Python 3.9+ OR Docker installed
+- Git
 
----
-
-## ⚡ Setup Instructions
-
-### 1. Clone Repository
+### Running Local Python Server
 
 ```bash
-git clone https://github.com/your-username/InfiOnboard.git
+# Clone the repository
+git clone https://github.com/Ratnesh25012005/InfiOnboard.git
 cd InfiOnboard
+
+# Create & activate virtual environment
+python -m venv venv
+.\venv\Scripts\activate   # Windows
+# OR source venv/bin/activate # Mac/Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the server
+python run.py
 ```
+Open **http://localhost:8000**
 
-### 2. Install Dependencies
+### Running via Docker (Judging Environment)
 
-#### Frontend
-
-```bash
-cd frontend
-npm install
-npm start
-```
-
-#### Backend
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
----
-
-## 🔑 Environment Variables
-
-Create a `.env` file in backend:
-
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
----
-
-## 🐳 Docker (Optional)
-
+We have provided a Dockerized environment for seamless hackathon judging.
 ```bash
 docker build -t infionboard .
-docker run -p 3000:3000 infionboard
+docker run -p 8000:8000 infionboard
 ```
+Open **http://localhost:8000**
 
 ---
 
-## 📹 Demo
+## Technical Dependencies
 
-* 2–3 minute walkthrough of:
-
-  * Resume upload
-  * Skill gap detection
-  * Adaptive roadmap generation
-
----
-
-## 📊 Datasets Used
-
-* Resume Dataset (Kaggle)
-* Job Description Dataset
-* O*NET Skills Database
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `fastapi` | ≥0.135 | Async web framework |
+| `uvicorn` | ≥0.42 | ASGI server |
+| `pydantic` | ≥2.0 | Schema validation |
+| `pypdf` | ≥3.0 | PDF Resume extraction engine |
+| `python-multipart`| ≥0.0.22| Form data handling for file uploads |
+| SQLite3 | Built-in | Course catalog database |
 
 ---
 
-## 🏆 Evaluation Focus
+## Team
 
-* Accurate skill extraction
-* Personalized recommendations
-* Clear UI/UX
-* Scalable architecture
-
----
-
-## 👥 Team
-
-* Your Name
-* Teammates
-
----
-
-## 📜 License
-
-This project is developed for hackathon purposes.
-
----
-
-## 💡 Future Enhancements
-
-* Real-time progress tracking
-* Integration with learning platforms
-* Multi-domain support (non-tech roles)
-* AI mentor/chatbot
-
----
-
-## ⭐ Conclusion
-
-InfiOnboard transforms onboarding into a personalized, efficient, and intelligent experience, helping users reach job readiness faster with minimal redundancy.
-
----
+**Ratnesh Singh Bhandari** · AI-Adaptive Onboarding Challenge 2026

@@ -4,11 +4,13 @@ Implements the Adaptive Pathing Algorithm for skill-gap analysis and course assi
 """
 import re
 import os
-from fastapi import FastAPI, HTTPException
+import io
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from pypdf import PdfReader
 from database import init_db, get_courses_for_skills, get_all_courses
 
 # ─────────────────────────────────────────────
@@ -49,24 +51,38 @@ SKILL_TAXONOMY = {
     "tableau": ["tableau", "data visualization", "power bi", "powerbi", "looker", "superset", "charting", "dashboards"],
     "agile": ["agile", "scrum", "kanban", "sprint", "jira", "confluence", "project management"],
     "generative ai": ["generative ai", "genai", "llm", "large language model", "gpt", "chatgpt", "prompt engineering", "rag", "langchain"],
+    "sales": ["sales", "b2b", "negotiation", "crm", "salesforce", "pipeline", "outbound"],
+    "warehouse": ["warehouse", "logistics", "supply chain", "inventory", "forklift", "osha", "safety"],
+    "customer success": ["customer success", "client relations", "onboarding", "nps", "churn", "retention"],
+    "hr": ["hr", "human resources", "compliance", "employee relations", "dei", "recruiting", "talent"]
 }
 
-
-def extract_skills(text: str) -> set:
+# Simulated NLP Engine inspired by Kaggle Resume Dataset & O*NET
+def process_nlp_extraction(text: str) -> dict:
     """
-    Extract recognized skills from text using keyword matching against the taxonomy.
-    Returns a set of canonical skill names.
+    Simulates an LLM/NLP extraction engine.
+    Returns a dict mapping skill canonical names to their experience levels.
     """
     text_lower = text.lower()
-    found = set()
+    extracted = {}
+    
+    # Simple heuristic for experience levels
+    expert_keywords = ["expert", "senior", "lead", "advanced", "architect", "5+ years", "10 years"]
+    beginner_keywords = ["junior", "beginner", "entry", "intern", "familiar", "learning", "basic"]
+    
+    default_level = "Intermediate"
+    if any(k in text_lower for k in expert_keywords):
+        default_level = "Advanced"
+    elif any(k in text_lower for k in beginner_keywords):
+        default_level = "Beginner"
+
     for canonical, aliases in SKILL_TAXONOMY.items():
         for alias in aliases:
-            # Use word boundary matching to avoid false positives
             pattern = r'\b' + re.escape(alias) + r'\b'
             if re.search(pattern, text_lower):
-                found.add(canonical)
+                extracted[canonical] = default_level
                 break
-    return found
+    return extracted
 
 
 def build_reasoning_trace(skill: str, course: dict) -> str:
@@ -107,8 +123,8 @@ class CourseItem(BaseModel):
 
 
 class AnalyzeResponse(BaseModel):
-    resume_skills: list
-    jd_skills: list
+    resume_skills: dict
+    jd_skills: dict
     skill_gap: list
     common_skills: list
     pathway: list
@@ -145,27 +161,47 @@ async def get_catalog():
 
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
-async def analyze(request: AnalyzeRequest):
+async def analyze(
+    resume_file: UploadFile = File(None),
+    resume_text: str = Form(None),
+    jd_text: str = Form(...)
+):
     """
     Adaptive Pathing Algorithm:
-    1. Extract skills from Resume text
-    2. Extract required skills from JD text
-    3. Compute gap = JD skills - Resume skills
-    4. Query SQLite catalog for matching courses
-    5. Build reasoning traces and return structured pathway
+    1. Extract text from PDF (if uploaded) or use raw text
+    2. Extract skills & experience levels from Resume via simulated NLP
+    3. Extract required skills from JD text
+    4. Compute gap = JD skills - Resume skills
+    5. Query SQLite catalog for matching courses
+    6. Build reasoning traces and return structured pathway
     """
-    if not request.resume_text.strip():
-        raise HTTPException(status_code=400, detail="Resume text cannot be empty.")
-    if not request.jd_text.strip():
+    # Handle Resume Input
+    final_resume_text = ""
+    if resume_file and resume_file.filename.endswith('.pdf'):
+        try:
+            content = await resume_file.read()
+            pdf = PdfReader(io.BytesIO(content))
+            final_resume_text = " ".join([page.extract_text() for page in pdf.pages if page.extract_text()])
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to parse PDF: {str(e)}")
+    elif resume_text:
+        final_resume_text = resume_text.strip()
+        
+    if not final_resume_text:
+        raise HTTPException(status_code=400, detail="Please provide either a Resume PDF or Paste text.")
+    if not jd_text.strip():
         raise HTTPException(status_code=400, detail="JD text cannot be empty.")
 
-    # Step 1 & 2: Extract skills
-    resume_skills = extract_skills(request.resume_text)
-    jd_skills = extract_skills(request.jd_text)
+    # Step 1 & 2: Extract skills & experience using NLP engine
+    resume_extracted = process_nlp_extraction(final_resume_text)
+    jd_extracted = process_nlp_extraction(jd_text)
 
-    # Step 3: Calculate gap
-    skill_gap = jd_skills - resume_skills
-    common_skills = resume_skills & jd_skills
+    # Step 3: Calculate gap (set difference on keys)
+    resume_skills_set = set(resume_extracted.keys())
+    jd_skills_set = set(jd_extracted.keys())
+    
+    skill_gap = jd_skills_set - resume_skills_set
+    common_skills = resume_skills_set & jd_skills_set
 
     # Step 4: Query DB — only courses from catalog (zero hallucinations)
     matched_courses_raw = get_courses_for_skills(list(skill_gap))
@@ -198,8 +234,8 @@ async def analyze(request: AnalyzeRequest):
         )
 
     return AnalyzeResponse(
-        resume_skills=sorted(list(resume_skills)),
-        jd_skills=sorted(list(jd_skills)),
+        resume_skills=resume_extracted,
+        jd_skills=jd_extracted,
         skill_gap=sorted(list(skill_gap)),
         common_skills=sorted(list(common_skills)),
         pathway=pathway,

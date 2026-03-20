@@ -104,6 +104,38 @@ COURSES = [
         "level": "Intermediate",
         "description": "LLM fundamentals, prompt design, RAG pipelines, and responsible AI practices."
     },
+    {
+        "id": 13,
+        "title": "B2B Sales Strategies",
+        "skill_tag": "sales",
+        "duration_hours": 15,
+        "level": "Intermediate",
+        "description": "Pipeline management, enterprise negotiation, objection handling, and CRM best practices."
+    },
+    {
+        "id": 14,
+        "title": "Warehouse Safety & Logistics",
+        "skill_tag": "warehouse",
+        "duration_hours": 8,
+        "level": "Beginner",
+        "description": "OSHA compliance, inventory management systems, forklift safety, and supply chain basics."
+    },
+    {
+        "id": 15,
+        "title": "Customer Success Fundamentals",
+        "skill_tag": "customer success",
+        "duration_hours": 12,
+        "level": "Beginner",
+        "description": "Onboarding strategies, churn reduction, NPS tracking, and client relationship management."
+    },
+    {
+        "id": 16,
+        "title": "HR Compliance & Employee Relations",
+        "skill_tag": "hr",
+        "duration_hours": 20,
+        "level": "Advanced",
+        "description": "Employment law, conflict resolution, DEI initiatives, and performance management."
+    }
 ]
 
 
