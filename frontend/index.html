@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InfiOnboard — AI-Adaptive Onboarding Engine</title>
+  <meta name="description" content="Intelligent skill-gap analysis and personalized training pathway generator for new hires." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+          colors: {
+            brand: { 50:'#f0f4ff', 100:'#e0e9ff', 200:'#c7d7fe', 300:'#a4bcfd', 400:'#8098fa', 500:'#6272f5', 600:'#4f52ea', 700:'#4240cf', 800:'#3737a8', 900:'#333585' },
+            accent: { 400:'#fb923c', 500:'#f97316' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #0a0b1a; font-family: 'Inter', sans-serif; }
+
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+    }
+    .glass-strong {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(20px);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #818cf8 0%, #a78bfa 50%, #fb923c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-glow {
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.25) 0%, transparent 70%);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 180px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #c7d2fe;
+      background: rgba(10,11,26,0.8);
+      border: 1px solid rgba(99,102,241,0.3);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea::placeholder { color: rgba(148,163,184,0.5); }
+    textarea:focus { 
+      outline: none;
+      border-color: rgba(99,102,241,0.7);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6272f5 0%, #8098fa 100%);
+      box-shadow: 0 4px 24px rgba(99,102,241,0.4);
+      transition: all 0.2s;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.5);
+    }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Loading spinner */
+    .spinner {
+      border: 2px solid rgba(255,255,255,0.15);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Skill pills */
+    .skill-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* Timeline */
+    .timeline-item {
+      animation: slideIn 0.5s ease forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .timeline-connector {
+      position: absolute;
+      left: 19px;
+      top: 40px;
+      bottom: -20px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(99,102,241,0.6) 0%, rgba(99,102,241,0.1) 100%);
+    }
+
+    /* Level badges */
+    .badge-beginner { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .badge-intermediate { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+    .badge-advanced { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+
+    /* Reasoning trace */
+    .reasoning-box {
+      background: rgba(99,102,241,0.06);
+      border-left: 3px solid rgba(99,102,241,0.5);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100">
+
+  <!-- Background decoration -->
+  <div class="fixed inset-0 pointer-events-none hero-glow"></div>
+  <div class="fixed top-60 right-10 w-72 h-72 rounded-full bg-purple-600/5 blur-3xl pointer-events-none"></div>
+  <div class="fixed bottom-20 left-10 w-96 h-96 rounded-full bg-brand-600/5 blur-3xl pointer-events-none"></div>
+
+  <div class="relative max-w-5xl mx-auto px-4 py-12">
+
+    <!-- Header -->
+    <header class="text-center mb-14">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs text-brand-300 font-medium mb-6 tracking-wide uppercase">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+        AI-Powered Onboarding Engine
+      </div>
+      <h1 class="text-5xl font-extrabold tracking-tight mb-4">
+        <span class="gradient-text">infi</span><span class="text-white">Onboard</span>
+      </h1>
+      <p class="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
+        Paste a resume and job description. Our Adaptive Pathing Algorithm identifies skill gaps and maps your personalized training journey — instantly.
+      </p>
+    </header>
+
+    <!-- Input Panel -->
+    <div class="grid md:grid-cols-2 gap-4 mb-6">
+      <!-- Resume -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <label class="font-semibold text-sm text-slate-200" for="resumeInput">Candidate Resume</label>
+        </div>
+        <textarea
+          id="resumeInput"
+          class="w-full rounded-xl p-3"
+          placeholder="Paste the candidate's resume here...
+
+Example:
+Experienced Java developer with SQL skills.
+3 years building REST APIs with Spring Boot.
+Familiar with Git and Linux systems."
+        ></textarea>
+      </div>
+
+      <!-- JD -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-accent-500/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <label class="font-semibold text-sm text-slate-200" for="jdInput">Job Description</label>
+        </div>
+        <textarea
+          id="jdInput"
+          class="w-full rounded-xl p-3"
+          placeholder="Paste the job description here...
+
+Example:
+We are looking for a Python developer with
+React, AWS cloud, Docker containerization,
+and Machine Learning experience."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Analyze Button -->
+    <div class="flex justify-center mb-10">
+      <button
+        id="analyzeBtn"
+        onclick="analyzeGap()"
+        class="btn-primary text-white font-semibold px-10 py-3.5 rounded-xl text-base flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        Analyze Skill Gap
+      </button>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results" class="hidden space-y-6">
+
+      <!-- Summary Card -->
+      <div id="summaryCard" class="glass-strong rounded-2xl p-6"></div>
+
+      <!-- Skills Overview -->
+      <div id="skillsOverview" class="grid md:grid-cols-3 gap-4"></div>
+
+      <!-- Learning Pathway -->
+      <div id="pathwaySection" class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-9 h-9 rounded-xl bg-brand-600/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-bold text-lg text-white">Personalized Learning Pathway</h2>
+            <p class="text-xs text-slate-400">Ordered Beginner → Advanced · Grounded in course catalog</p>
+          </div>
+        </div>
+        <div id="timeline" class="space-y-4"></div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="errorBox" class="hidden glass rounded-2xl p-5 border border-red-500/30 text-red-400 text-sm"></div>
+
+    <!-- Footer -->
+    <footer class="text-center mt-14 text-slate-600 text-xs">
+      InfiOnboard · AI-Adaptive Onboarding Engine · Powered by FastAPI + SQLite
+    </footer>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    function setLoading(loading) {
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? `<span class="spinner"></span> Analyzing...`
+        : `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Analyze Skill Gap`;
+    }
+
+    function levelBadge(level) {
+      const cls = { 'Beginner': 'badge-beginner', 'Intermediate': 'badge-intermediate', 'Advanced': 'badge-advanced' };
+      return `<span class="skill-pill ${cls[level] || ''}">${level}</span>`;
+    }
+
+    function skillPill(skill, type) {
+      const styles = {
+        resume: 'background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)',
+        jd: 'background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.25)',
+        gap: 'background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25)',
+        common: 'background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.25)'
+      };
+      return `<span class="skill-pill" style="${styles[type]}">${skill}</span>`;
+    }
+
+    function renderSkillBox(title, skills, type, icon, color) {
+      const pills = skills.length
+        ? skills.map(s => skillPill(s, type)).join(' ')
+        : `<span class="text-slate-500 text-xs">None detected</span>`;
+      return `
+        <div class="glass rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">${icon}</span>
+            <span class="font-semibold text-sm" style="color:${color}">${title}</span>
+            <span class="ml-auto text-xs text-slate-500">${skills.length}</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5">${pills}</div>
+        </div>`;
+    }
+
+    function renderCourseCard(course, index) {
+      const delay = index * 80;
+      return `
+        <div class="timeline-item relative pl-12" style="animation-delay:${delay}ms">
+          <div class="absolute left-0 top-0 w-10 h-10 rounded-full bg-brand-600/20 border-2 border-brand-500/40 flex items-center justify-center text-brand-400 font-bold text-sm flex-shrink-0">${index + 1}</div>
+          ${index < 99 ? '<div class="timeline-connector"></div>' : ''}
+          <div class="glass rounded-xl p-5 hover:border-brand-500/30 transition-colors">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h3 class="font-semibold text-white text-base leading-tight">${course.title}</h3>
+                <p class="text-slate-400 text-sm mt-1 leading-relaxed">${course.description}</p>
+              </div>
+              <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                ${levelBadge(course.level)}
+                <span class="text-xs text-slate-500 mt-1">⏱ ${course.duration_hours}h</span>
+              </div>
+            </div>
+            <!-- Reasoning Trace -->
+            <div class="reasoning-box px-4 py-3 mt-3 rounded-r-xl">
+              <div class="flex items-center gap-2 mb-1">
+                <svg class="w-3.5 h-3.5 text-brand-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                <span class="text-brand-400 text-xs font-semibold tracking-wide uppercase">Reasoning Trace</span>
+              </div>
+              <p class="font-mono text-xs text-slate-400 leading-relaxed">${course.reasoning}</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function analyzeGap() {
+      const resume = document.getElementById('resumeInput').value.trim();
+      const jd = document.getElementById('jdInput').value.trim();
+      const errBox = document.getElementById('errorBox');
+      const results = document.getElementById('results');
+
+      errBox.classList.add('hidden');
+      results.classList.add('hidden');
+
+      if (!resume) { errBox.textContent = 'Please enter the candidate resume text.'; errBox.classList.remove('hidden'); return; }
+      if (!jd) { errBox.textContent = 'Please enter the job description text.'; errBox.classList.remove('hidden'); return; }
+
+      setLoading(true);
+      try {
+        const resp = await fetch(`${API_BASE}/api/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resume_text: resume, jd_text: jd })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || 'Server error');
+        }
+
+        const data = await resp.json();
+        renderResults(data);
+      } catch (e) {
+        errBox.textContent = `Error: ${e.message}`;
+        errBox.classList.remove('hidden');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderResults(data) {
+      // Summary
+      const hasCourses = data.pathway.length > 0;
+      const summaryColor = data.skill_gap.length === 0 ? '#4ade80' : '#fb923c';
+      const summaryIcon = data.skill_gap.length === 0 ? '🎉' : '🎯';
+      document.getElementById('summaryCard').innerHTML = `
+        <div class="flex items-start gap-4">
+          <div class="text-3xl">${summaryIcon}</div>
+          <div class="flex-1">
+            <h2 class="font-bold text-white text-lg mb-1">Analysis Complete</h2>
+            <p class="text-slate-300 text-sm leading-relaxed">${data.summary}</p>
+            ${hasCourses ? `<div class="flex gap-4 mt-4 text-xs text-slate-400">
+              <span>🧩 <strong class="text-white">${data.skill_gap.length}</strong> gaps identified</span>
+              <span>📚 <strong class="text-white">${data.pathway.length}</strong> courses assigned</span>
+              <span>⏱ <strong class="text-white">${data.total_hours}h</strong> total learning</span>
+            </div>` : ''}
+          </div>
+        </div>`;
+
+      // Skills Overview
+      document.getElementById('skillsOverview').innerHTML =
+        renderSkillBox('Resume Skills', data.resume_skills, 'resume', '📄', '#4ade80') +
+        renderSkillBox('JD Requirements', data.jd_skills, 'jd', '💼', '#fb923c') +
+        renderSkillBox('Skill Gaps', data.skill_gap, 'gap', '🔍', '#f87171');
+
+      // Timeline
+      const timeline = document.getElementById('timeline');
+      if (data.pathway.length === 0) {
+        timeline.innerHTML = `<div class="text-center py-8 text-slate-500">
+          <div class="text-4xl mb-3">${data.skill_gap.length === 0 ? '✅' : '📭'}</div>
+          <p>${data.skill_gap.length === 0 ? 'No training needed — resume fully matches JD requirements!' : 'No matching courses found in the current catalog for the identified gaps.'}</p>
+        </div>`;
+      } else {
+        timeline.innerHTML = data.pathway.map((course, i) => renderCourseCard(course, i)).join('');
+      }
+
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Allow Ctrl+Enter to submit
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyzeGap();
+    });
+  </script>
+</body>
+</html>
