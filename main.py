@@ -6,10 +6,11 @@ import re
 import os
 import io
 import requests
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Request, Response, BackgroundTasks
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse
+from twilio.twiml.messaging_response import MessagingResponse
 from pydantic import BaseModel
 from pypdf import PdfReader
 from database import init_db, get_courses_for_skills, get_all_courses
@@ -248,109 +249,48 @@ async def analyze(
 
 
 # ─────────────────────────────────────────────
-# Meta WhatsApp Cloud API Webhook
+# WhatsApp Webhook Endpoint
 # ─────────────────────────────────────────────
-META_TOKEN = os.getenv("META_WHATSAPP_TOKEN", "YOUR_META_TOKEN")
-META_PHONE_ID = os.getenv("META_WHATSAPP_PHONE_ID", "YOUR_PHONE_ID")
-VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN", "infionboard_hackathon")
-
-@app.get("/api/whatsapp")
-async def verify_whatsapp_webhook(request: Request):
-    """
-    Meta requires a GET request to verify the webhook URL.
-    """
-    mode = request.query_params.get("hub.mode")
-    token = request.query_params.get("hub.verify_token")
-    challenge = request.query_params.get("hub.challenge")
-
-    if mode == "subscribe" and token == VERIFY_TOKEN:
-        print("[InfiOnboard] Meta Webhook Verified Successfully!")
-        return PlainTextResponse(content=challenge, status_code=200)
-    raise HTTPException(status_code=403, detail="Verification failed")
-
-
-def send_meta_whatsapp_message(to_phone: str, message: str):
-    """Helper to send text replies via Meta Graph API."""
-    url = f"https://graph.facebook.com/v18.0/{META_PHONE_ID}/messages"
-    headers = {
-        "Authorization": f"Bearer {META_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": to_phone,
-        "type": "text",
-        "text": {"body": message}
-    }
-    requests.post(url, headers=headers, json=payload)
-
-
 @app.post("/api/whatsapp")
-async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks):
+async def whatsapp_webhook(request: Request):
     """
-    Handles incoming JSON messages from Meta WhatsApp API.
-    Expects PDF as an attached 'document' with the Job Description in the 'caption'.
+    Webhook handler for Twilio WhatsApp API.
+    Expects PDF as an attachment (MediaUrl0) and JD as text (Body).
+    Returns an XML TwiML response containing the learning pathway.
     """
+    form_data = await request.form()
+    jd_text = form_data.get("Body", "").strip()
+    media_url = form_data.get("MediaUrl0")
+    media_type = form_data.get("MediaContentType0", "")
+    
+    resp = MessagingResponse()
+    
+    if not jd_text:
+        resp.message("👋 Welcome to InfiOnboard! Please send me a *Job Description* (as text) and attach your *Resume* (as a PDF) to generate an AI-adaptive training path!")
+        return Response(content=str(resp), media_type="application/xml")
+        
+    if not media_url or "pdf" not in str(media_type).lower():
+        resp.message("❌ No PDF found. Please attach your Resume (PDF document) to your message along with the Job Description text.")
+        return Response(content=str(resp), media_type="application/xml")
+        
     try:
-        data = await request.json()
-    except Exception:
-        return Response(status_code=400)
-        
-    if "object" not in data or data["object"] != "whatsapp_business_account":
-        return Response(status_code=404)
-        
-    try:
-        entry = data["entry"][0]
-        changes = entry["changes"][0]["value"]
-        if "messages" not in changes:
-            return Response(status_code=200) # Event without a message
-            
-        message = changes["messages"][0]
-        from_phone = message.get("from")
-        
-        if message.get("type") != "document":
-            send_meta_whatsapp_message(from_phone, "👋 Welcome to InfiOnboard! Please attach your *Resume* (PDF) and paste the *Job Description* clearly in the file's 'Caption' field to generate an AI roadmap.")
-            return Response(status_code=200)
-            
-        doc = message.get("document", {})
-        media_id = doc.get("id")
-        jd_text = doc.get("caption", "").strip()
-        mime_type = doc.get("mime_type", "")
-        
-        if "pdf" not in mime_type.lower():
-            send_meta_whatsapp_message(from_phone, "❌ Please attach a PDF document. Other formats are not currently supported.")
-            return Response(status_code=200)
-            
-        if not jd_text:
-            send_meta_whatsapp_message(from_phone, "❌ Missing Job Description. Please resend the PDF and make sure to type the Job Description in the WhatsApp 'Caption' field attached to the PDF.")
-            return Response(status_code=200)
-
-        # Notify user processing has started
-        send_meta_whatsapp_message(from_phone, "⏳ Analyzing your Resume against the Job Description... Generating your custom roadmap.")
-
-        headers = {"Authorization": f"Bearer {META_TOKEN}"}
-        
-        # 1. Get Media URL via Graph API
-        media_url_req = requests.get(f"https://graph.facebook.com/v18.0/{media_id}", headers=headers)
-        media_url_req.raise_for_status()
-        media_url = media_url_req.json().get("url")
-        
-        # 2. Download the binary PDF payload
-        pdf_response = requests.get(media_url, headers=headers)
+        # Download PDF from Twilio URL
+        pdf_response = requests.get(media_url)
         pdf_response.raise_for_status()
-        
         pdf = PdfReader(io.BytesIO(pdf_response.content))
         final_resume_text = " ".join([page.extract_text() for page in pdf.pages if page.extract_text()])
         
-        # Run Adaptive Pathing logic
+        # Step 1 & 2: Skill Extraction
         resume_extracted = process_nlp_extraction(final_resume_text)
         jd_extracted = process_nlp_extraction(jd_text)
+        
         skill_gap = set(jd_extracted.keys()) - set(resume_extracted.keys())
         
         if not skill_gap:
-            send_meta_whatsapp_message(from_phone, "🎉 Perfect Match! Your resume indicates you have all the required skills for this job. No additional training is needed.")
-            return Response(status_code=200)
+            resp.message("🎉 Perfect Match! Your resume indicates you have all the required skills for this job. No additional training is needed.")
+            return Response(content=str(resp), media_type="application/xml")
             
+        # Compile Database Matches
         matched_courses_raw = get_courses_for_skills(list(skill_gap))
         seen_ids = set()
         pathway = []
@@ -359,17 +299,19 @@ async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks):
                 seen_ids.add(course["id"])
                 pathway.append(course)
                 
+        # Sort beginner to advanced
         level_order = {"Beginner": 0, "Intermediate": 1, "Advanced": 2}
         pathway.sort(key=lambda c: level_order.get(c["level"], 99))
         
         total_hours = sum(c["duration_hours"] for c in pathway)
         
+        # Format WhatsApp output
         msg = f"🎯 *InfiOnboard Analysis Complete*\n\n"
         msg += f"🧩 *Skill Gaps:* {len(skill_gap)}\n"
         msg += f"⏱ *Total Learning:* {total_hours}h\n\n"
         msg += "*Your Actionable Pathway:*\n"
         
-        for i, c in enumerate(pathway[:5]):
+        for i, c in enumerate(pathway[:5]): # WhatsApp limit
             icon = "▶️" if c["resource_type"] == "Video" else "📄" if c["resource_type"] == "Documentation" else "💻"
             msg += f"{i+1}️⃣ *{c['title']}* ({c['level']})\n"
             msg += f"_{c['description']}_\n"
@@ -378,15 +320,12 @@ async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks):
         if len(pathway) > 5:
             msg += f"...and {len(pathway)-5} more modules!\n"
             
-        # Send definitive result 
-        send_meta_whatsapp_message(from_phone, msg.strip())
+        resp.message(msg.strip())
         
     except Exception as e:
-        print(f"[Error] WhatsApp Webhook processing failed: {str(e)}")
-        # Optionally send error back to user if from_phone is captured
-        
-    # Meta requires a 200 OK consistently to prevent webhook disabling
-    return Response(status_code=200)
+        resp.message(f"⚠️ Oops! Error processing your documents: {str(e)}")
+
+    return Response(content=str(resp), media_type="application/xml")
 
 
 # ─────────────────────────────────────────────
