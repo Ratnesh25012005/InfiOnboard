@@ -5,12 +5,10 @@ Implements the Adaptive Pathing Algorithm for skill-gap analysis and course assi
 import re
 import os
 import io
-import requests
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Request, Response
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from twilio.twiml.messaging_response import MessagingResponse
 from pydantic import BaseModel
 from pypdf import PdfReader
 from database import init_db, get_courses_for_skills, get_all_courses
@@ -246,90 +244,6 @@ async def analyze(
         total_hours=total_hours,
         summary=summary,
     )
-
-
-# ─────────────────────────────────────────────
-# WhatsApp Webhook Endpoint
-# ─────────────────────────────────────────────
-@app.post("/api/whatsapp")
-async def whatsapp_webhook(request: Request):
-    """
-    Webhook handler for Twilio WhatsApp API.
-    Expects PDF as an attachment (MediaUrl0) and JD as text (Body).
-    Returns an XML TwiML response containing the learning pathway.
-    """
-    form_data = await request.form()
-    jd_text = form_data.get("Body", "").strip()
-    media_url = form_data.get("MediaUrl0")
-    media_type = form_data.get("MediaContentType0", "")
-    
-    resp = MessagingResponse()
-    
-    if not jd_text:
-        resp.message("👋 Welcome to InfiOnboard! Please send me a *Job Description* (as text) and attach your *Resume* (as a PDF) to generate an AI-adaptive training path!")
-        return Response(content=str(resp), media_type="application/xml")
-        
-    if not media_url or "pdf" not in str(media_type).lower():
-        resp.message("❌ No PDF found. Please attach your Resume (PDF document) to your message along with the Job Description text.")
-        return Response(content=str(resp), media_type="application/xml")
-        
-    try:
-        # Download PDF from Twilio URL
-        pdf_response = requests.get(media_url)
-        pdf_response.raise_for_status()
-        pdf = PdfReader(io.BytesIO(pdf_response.content))
-        final_resume_text = " ".join([page.extract_text() for page in pdf.pages if page.extract_text()])
-        
-        # Step 1 & 2: Skill Extraction
-        resume_extracted = process_nlp_extraction(final_resume_text)
-        jd_extracted = process_nlp_extraction(jd_text)
-        
-        skill_gap = set(jd_extracted.keys()) - set(resume_extracted.keys())
-        
-        if not skill_gap:
-            resp.message("🎉 Perfect Match! Your resume indicates you have all the required skills for this job. No additional training is needed.")
-            return Response(content=str(resp), media_type="application/xml")
-            
-        # Compile Database Matches
-        matched_courses_raw = get_courses_for_skills(list(skill_gap))
-        seen_ids = set()
-        pathway = []
-        for course in matched_courses_raw:
-            if course["id"] not in seen_ids:
-                seen_ids.add(course["id"])
-                pathway.append(course)
-                
-        # Sort beginner to advanced
-        level_order = {"Beginner": 0, "Intermediate": 1, "Advanced": 2}
-        pathway.sort(key=lambda c: level_order.get(c["level"], 99))
-        
-        total_hours = sum(c["duration_hours"] for c in pathway)
-        
-        # Format WhatsApp output
-        msg = f"🎯 *InfiOnboard Analysis Complete*\n\n"
-        msg += f"🧩 *Skill Gaps Identified:* {len(skill_gap)}\n"
-        msg += f"⏱ *Total Pathway Duration:* {total_hours}h\n\n"
-        msg += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += "🛤️ *YOUR CUSTOM TIMELINE*\n"
-        msg += "━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        
-        for i, c in enumerate(pathway[:5]): # WhatsApp limit
-            icon = "▶️" if c["resource_type"] == "Video" else "📄" if c["resource_type"] == "Documentation" else "💻"
-            msg += f"{i+1}️⃣ *{c['title']}*\n"
-            msg += f"🏅 *Level:* {c['level']} | ⏱ *Time:* {c['duration_hours']}h\n"
-            msg += f"_{c['description']}_\n"
-            msg += f"💡 *Reasoning:* {c['reasoning']}\n"
-            msg += f"{icon} *Action:* {c['resource_link']}\n\n"
-            
-        if len(pathway) > 5:
-            msg += f"➕ ...and {len(pathway)-5} more advanced modules!\n"
-            
-        resp.message(msg.strip())
-        
-    except Exception as e:
-        resp.message(f"⚠️ Oops! Error processing your documents: {str(e)}")
-
-    return Response(content=str(resp), media_type="application/xml")
 
 
 # ─────────────────────────────────────────────
