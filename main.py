@@ -307,18 +307,22 @@ async def whatsapp_webhook(request: Request):
         
         # Format WhatsApp output
         msg = f"🎯 *InfiOnboard Analysis Complete*\n\n"
-        msg += f"🧩 *Skill Gaps:* {len(skill_gap)}\n"
-        msg += f"⏱ *Total Learning:* {total_hours}h\n\n"
-        msg += "*Your Actionable Pathway:*\n"
+        msg += f"🧩 *Skill Gaps Identified:* {len(skill_gap)}\n"
+        msg += f"⏱ *Total Pathway Duration:* {total_hours}h\n\n"
+        msg += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        msg += "🛤️ *YOUR CUSTOM TIMELINE*\n"
+        msg += "━━━━━━━━━━━━━━━━━━━━━━\n\n"
         
         for i, c in enumerate(pathway[:5]): # WhatsApp limit
             icon = "▶️" if c["resource_type"] == "Video" else "📄" if c["resource_type"] == "Documentation" else "💻"
-            msg += f"{i+1}️⃣ *{c['title']}* ({c['level']})\n"
+            msg += f"{i+1}️⃣ *{c['title']}*\n"
+            msg += f"🏅 *Level:* {c['level']} | ⏱ *Time:* {c['duration_hours']}h\n"
             msg += f"_{c['description']}_\n"
-            msg += f"{icon} {c['resource_link']}\n\n"
+            msg += f"💡 *Reasoning:* {c['reasoning']}\n"
+            msg += f"{icon} *Action:* {c['resource_link']}\n\n"
             
         if len(pathway) > 5:
-            msg += f"...and {len(pathway)-5} more modules!\n"
+            msg += f"➕ ...and {len(pathway)-5} more advanced modules!\n"
             
         resp.message(msg.strip())
         
