@@ -14,7 +14,9 @@ COURSES = [
         "skill_tag": "python",
         "duration_hours": 20,
         "level": "Beginner",
-        "description": "Core Python programming: syntax, functions, OOP, and standard library essentials."
+        "description": "Core Python programming: syntax, functions, OOP, and standard library essentials.",
+        "resource_type": "Video",
+        "resource_link": "https://www.youtube.com/watch?v=kqtD5dpn9C8"
     },
     {
         "id": 2,
@@ -22,7 +24,9 @@ COURSES = [
         "skill_tag": "sql",
         "duration_hours": 15,
         "level": "Intermediate",
-        "description": "Window functions, CTEs, query optimization, and analytical SQL techniques."
+        "description": "Window functions, CTEs, query optimization, and analytical SQL techniques.",
+        "resource_type": "Interactive Course",
+        "resource_link": "https://mode.com/sql-tutorial/advanced-sql/"
     },
     {
         "id": 3,
@@ -30,7 +34,9 @@ COURSES = [
         "skill_tag": "react",
         "duration_hours": 18,
         "level": "Intermediate",
-        "description": "Redux, Context API, Zustand, and advanced React patterns for scalable frontends."
+        "description": "Redux, Context API, Zustand, and advanced React patterns for scalable frontends.",
+        "resource_type": "Documentation",
+        "resource_link": "https://react.dev/learn/managing-state"
     },
     {
         "id": 4,
@@ -38,7 +44,9 @@ COURSES = [
         "skill_tag": "aws",
         "duration_hours": 25,
         "level": "Beginner",
-        "description": "EC2, S3, Lambda, IAM, VPC fundamentals and AWS infrastructure essentials."
+        "description": "EC2, S3, Lambda, IAM, VPC fundamentals and AWS infrastructure essentials.",
+        "resource_type": "Video",
+        "resource_link": "https://aws.amazon.com/training/digital/"
     },
     {
         "id": 5,
@@ -46,7 +54,9 @@ COURSES = [
         "skill_tag": "docker",
         "duration_hours": 12,
         "level": "Intermediate",
-        "description": "Building Docker images, Compose, networking, volumes, and deployment best practices."
+        "description": "Building Docker images, Compose, networking, volumes, and deployment best practices.",
+        "resource_type": "Documentation",
+        "resource_link": "https://docs.docker.com/get-started/"
     },
     {
         "id": 6,
@@ -54,7 +64,9 @@ COURSES = [
         "skill_tag": "machine learning",
         "duration_hours": 30,
         "level": "Intermediate",
-        "description": "Supervised/unsupervised learning, model evaluation, feature engineering, and pipelines."
+        "description": "Supervised/unsupervised learning, model evaluation, feature engineering, and pipelines.",
+        "resource_type": "Interactive Course",
+        "resource_link": "https://scikit-learn.org/stable/tutorial/index.html"
     },
     {
         "id": 7,
@@ -62,7 +74,9 @@ COURSES = [
         "skill_tag": "typescript",
         "duration_hours": 14,
         "level": "Intermediate",
-        "description": "Types, interfaces, generics, decorators, and strict TypeScript configuration."
+        "description": "Types, interfaces, generics, decorators, and strict TypeScript configuration.",
+        "resource_type": "Documentation",
+        "resource_link": "https://www.typescriptlang.org/docs/handbook/intro.html"
     },
     {
         "id": 8,
@@ -70,7 +84,9 @@ COURSES = [
         "skill_tag": "fastapi",
         "duration_hours": 10,
         "level": "Intermediate",
-        "description": "Building high-performance APIs with FastAPI, Pydantic validation, and OpenAPI docs."
+        "description": "Building high-performance APIs with FastAPI, Pydantic validation, and OpenAPI docs.",
+        "resource_type": "Video",
+        "resource_link": "https://fastapi.tiangolo.com/tutorial/"
     },
     {
         "id": 9,
@@ -78,7 +94,9 @@ COURSES = [
         "skill_tag": "kubernetes",
         "duration_hours": 20,
         "level": "Advanced",
-        "description": "Pods, Deployments, Services, ConfigMaps, and orchestrating containers at scale."
+        "description": "Pods, Deployments, Services, ConfigMaps, and orchestrating containers at scale.",
+        "resource_type": "Interactive Course",
+        "resource_link": "https://kubernetes.io/docs/tutorials/kubernetes-basics/"
     },
     {
         "id": 10,
@@ -86,7 +104,9 @@ COURSES = [
         "skill_tag": "tableau",
         "duration_hours": 16,
         "level": "Beginner",
-        "description": "Building interactive dashboards, calculated fields, and publishing reports."
+        "description": "Building interactive dashboards, calculated fields, and publishing reports.",
+        "resource_type": "Video",
+        "resource_link": "https://www.tableau.com/learn/training/20234"
     },
     {
         "id": 11,
@@ -94,7 +114,9 @@ COURSES = [
         "skill_tag": "agile",
         "duration_hours": 8,
         "level": "Beginner",
-        "description": "Sprint planning, retrospectives, user stories, and agile team collaboration."
+        "description": "Sprint planning, retrospectives, user stories, and agile team collaboration.",
+        "resource_type": "Interactive Course",
+        "resource_link": "https://www.atlassian.com/agile"
     },
     {
         "id": 12,
@@ -102,7 +124,9 @@ COURSES = [
         "skill_tag": "generative ai",
         "duration_hours": 12,
         "level": "Intermediate",
-        "description": "LLM fundamentals, prompt design, RAG pipelines, and responsible AI practices."
+        "description": "LLM fundamentals, prompt design, RAG pipelines, and responsible AI practices.",
+        "resource_type": "Video",
+        "resource_link": "https://www.oreilly.com/library/view/generative-ai/9781098159214/"
     },
     {
         "id": 13,
@@ -110,7 +134,9 @@ COURSES = [
         "skill_tag": "sales",
         "duration_hours": 15,
         "level": "Intermediate",
-        "description": "Pipeline management, enterprise negotiation, objection handling, and CRM best practices."
+        "description": "Pipeline management, enterprise negotiation, objection handling, and CRM best practices.",
+        "resource_type": "Video",
+        "resource_link": "https://www.salesforce.com/resources/articles/b2b-sales/"
     },
     {
         "id": 14,
@@ -118,7 +144,9 @@ COURSES = [
         "skill_tag": "warehouse",
         "duration_hours": 8,
         "level": "Beginner",
-        "description": "OSHA compliance, inventory management systems, forklift safety, and supply chain basics."
+        "description": "OSHA compliance, inventory management systems, forklift safety, and supply chain basics.",
+        "resource_type": "Documentation",
+        "resource_link": "https://www.osha.gov/warehousing"
     },
     {
         "id": 15,
@@ -126,7 +154,9 @@ COURSES = [
         "skill_tag": "customer success",
         "duration_hours": 12,
         "level": "Beginner",
-        "description": "Onboarding strategies, churn reduction, NPS tracking, and client relationship management."
+        "description": "Onboarding strategies, churn reduction, NPS tracking, and client relationship management.",
+        "resource_type": "Interactive Course",
+        "resource_link": "https://www.hubspot.com/resources/customer-success"
     },
     {
         "id": 16,
@@ -134,7 +164,9 @@ COURSES = [
         "skill_tag": "hr",
         "duration_hours": 20,
         "level": "Advanced",
-        "description": "Employment law, conflict resolution, DEI initiatives, and performance management."
+        "description": "Employment law, conflict resolution, DEI initiatives, and performance management.",
+        "resource_type": "Documentation",
+        "resource_link": "https://www.shrm.org/topics-tools/employment-law-compliance"
     }
 ]
 
@@ -151,7 +183,9 @@ def init_db():
             skill_tag TEXT NOT NULL,
             duration_hours INTEGER NOT NULL,
             level TEXT NOT NULL,
-            description TEXT NOT NULL
+            description TEXT NOT NULL,
+            resource_type TEXT NOT NULL,
+            resource_link TEXT NOT NULL
         )
     """)
 
@@ -160,7 +194,7 @@ def init_db():
     count = cursor.fetchone()[0]
     if count == 0:
         cursor.executemany(
-            "INSERT INTO courses (id, title, skill_tag, duration_hours, level, description) VALUES (:id, :title, :skill_tag, :duration_hours, :level, :description)",
+            "INSERT INTO courses (id, title, skill_tag, duration_hours, level, description, resource_type, resource_link) VALUES (:id, :title, :skill_tag, :duration_hours, :level, :description, :resource_type, :resource_link)",
             COURSES
         )
         print(f"[DB] Seeded {len(COURSES)} courses into catalog.db")

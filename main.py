@@ -118,6 +118,8 @@ class CourseItem(BaseModel):
     duration_hours: int
     level: str
     description: str
+    resource_type: str
+    resource_link: str
     matched_skill: str
     reasoning: str
 
