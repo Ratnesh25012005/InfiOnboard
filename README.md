@@ -92,7 +92,7 @@ To build our robust extraction taxonomy and ensure cross-domain scalability (cov
 
 ```bash
 # Clone the repository
-git clone https://github.com/Ratnesh25012005/InfiOnboard.git
+git clone https://github.com/oyelurker/InfiOnboard.git
 cd InfiOnboard
 
 # Create & activate virtual environment

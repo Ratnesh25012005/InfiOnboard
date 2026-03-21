@@ -1,6 +1,6 @@
 """
 database.py — InfiOnboard Course Catalog Database
-Initializes SQLite catalog.db and seeds 12 corporate training courses.
+Initializes SQLite catalog.db and seeds 16 corporate training courses across Tech, GenAI, Sales, Warehouse, and HR domains.
 """
 import sqlite3
 import os
