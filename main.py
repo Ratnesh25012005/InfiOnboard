@@ -1,11 +1,12 @@
 """
 main.py — InfiOnboard FastAPI Backend
-Implements the Adaptive Pathing Algorithm for skill-gap analysis and course assignment.
+Adaptive Pathing Algorithm: skill-gap analysis, experience tracing, and learning pathway generation.
 """
 import re
 import os
 import io
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -14,13 +15,26 @@ from pypdf import PdfReader
 from database import init_db, get_courses_for_skills, get_all_courses
 
 # ─────────────────────────────────────────────
+# Lifespan (replaces deprecated @app.on_event)
+# ─────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    print("[InfiOnboard] Server started. Catalog database initialized.")
+    yield
+
+# ─────────────────────────────────────────────
 # App Setup
 # ─────────────────────────────────────────────
 app = FastAPI(
     title="InfiOnboard API",
     description="AI-Adaptive Onboarding Engine — Skill Gap Analysis & Learning Pathway Generator",
-    version="1.0.0"
+    version="1.1.0",
+    lifespan=lifespan,
 )
+
+# Versioned router
+v1 = APIRouter(prefix="/api/v1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,8 +45,10 @@ app.add_middleware(
 )
 
 # Serve frontend static files
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend-react", "dist")
+# Mount Vite's asset folder specifically to match the build output /assets/
+if os.path.exists(os.path.join(FRONTEND_DIR, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="assets")
 
 # ─────────────────────────────────────────────
 # Skill Keyword Taxonomy
@@ -57,41 +73,71 @@ SKILL_TAXONOMY = {
     "hr": ["hr", "human resources", "compliance", "employee relations", "dei", "recruiting", "talent"]
 }
 
-# Simulated NLP Engine inspired by Kaggle Resume Dataset & O*NET
+# ─────────────────────────────────────────────
+# NLP Extraction Engine (Kaggle Resume Dataset & O*NET inspired)
+# ─────────────────────────────────────────────
+_EXPERT_KW   = ["expert", "senior", "lead", "advanced", "architect", "5+ years", "10 years", "principal", "staff engineer"]
+_BEGINNER_KW = ["junior", "beginner", "entry", "intern", "familiar", "learning", "basic", "fundamental", "exposure", "novice"]
+_WINDOW = 60  # characters around a skill mention to search for experience markers
+
+
+def _detect_level_near(text: str, match_start: int) -> str:
+    """Find experience level within a proximity window around the skill mention."""
+    start = max(0, match_start - _WINDOW)
+    end   = min(len(text), match_start + _WINDOW)
+    window = text[start:end]
+    if any(k in window for k in _EXPERT_KW):
+        return "Advanced"
+    if any(k in window for k in _BEGINNER_KW):
+        return "Beginner"
+    return None
+
+
 def process_nlp_extraction(text: str) -> dict:
     """
-    Simulates an LLM/NLP extraction engine.
-    Returns a dict mapping skill canonical names to their experience levels.
+    Adaptive NLP extraction engine.
+    Extracts skill tokens and infers experience level per-skill using
+    proximity window matching (inspired by Kaggle Resume & O*NET datasets).
+    Returns a dict mapping canonical skill names to experience levels.
     """
     text_lower = text.lower()
     extracted = {}
-    
-    # Simple heuristic for experience levels
-    expert_keywords = ["expert", "senior", "lead", "advanced", "architect", "5+ years", "10 years"]
-    beginner_keywords = ["junior", "beginner", "entry", "intern", "familiar", "learning", "basic"]
-    
-    default_level = "Intermediate"
-    if any(k in text_lower for k in expert_keywords):
-        default_level = "Advanced"
-    elif any(k in text_lower for k in beginner_keywords):
-        default_level = "Beginner"
+
+    # Document-level fallback experience (for skills with no nearby marker)
+    doc_level = "Intermediate"
+    if any(k in text_lower for k in _EXPERT_KW):
+        doc_level = "Advanced"
+    elif any(k in text_lower for k in _BEGINNER_KW):
+        doc_level = "Beginner"
 
     for canonical, aliases in SKILL_TAXONOMY.items():
         for alias in aliases:
             pattern = r'\b' + re.escape(alias) + r'\b'
-            if re.search(pattern, text_lower):
-                extracted[canonical] = default_level
+            match = re.search(pattern, text_lower)
+            if match:
+                # Try proximity window first; fall back to doc-level
+                level = _detect_level_near(text_lower, match.start()) or doc_level
+                extracted[canonical] = level
                 break
     return extracted
 
 
-def build_reasoning_trace(skill: str, course: dict) -> str:
-    """Build a human-readable reasoning trace for a course assignment."""
+def build_reasoning_trace(skill: str, course: dict, candidate_level: str = None) -> str:
+    """
+    Build an enriched reasoning trace for a course assignment.
+    Explains the skill gap, why this difficulty level was selected, and what the course covers.
+    """
+    level_reason = {
+        "Beginner":     "Candidate has no prior exposure to this skill — starting from fundamentals.",
+        "Intermediate": "Candidate has foundational knowledge but lacks professional depth.",
+        "Advanced":     "Candidate profile indicates seniority — advanced application required.",
+    }
+    rationale = level_reason.get(course["level"], "Level matched to skill gap analysis.")
     return (
-        f"Resume lacks '{skill.title()}' → "
-        f"JD requires '{skill.title()}' → "
-        f"Skill gap identified → "
-        f"Assigned: {course['title']} ({course['level']}, {course['duration_hours']}h)"
+        f"Gap: Resume missing '{skill.title()}' · JD requires it. "
+        f"Level assigned: {course['level']}. "
+        f"{rationale} "
+        f"→ Assigned: {course['title']} ({course['duration_hours']}h)"
     )
 
 
@@ -131,6 +177,8 @@ class AnalyzeResponse(BaseModel):
     common_skills: list
     pathway: list
     total_hours: int
+    total_catalog_hours: int   # hours if full catalog was assigned (for TTR savings calc)
+    ttr_saved_hours: int       # hours saved vs full catalog
     summary: str
 
 
@@ -145,24 +193,31 @@ async def serve_index():
     return {"message": "InfiOnboard API is running. Frontend not found."}
 
 
-@app.get("/api/health")
+# ── Mount versioned routes on both /api (legacy) and /api/v1 ──────────────────
+
+
+@v1.get("/health")
+@app.get("/api/health")  # legacy compat
 async def health_check():
     courses = get_all_courses()
     return {
         "status": "healthy",
+        "version": "1.1.0",
         "catalog_size": len(courses),
         "message": "InfiOnboard API is running"
     }
 
 
-@app.get("/api/catalog")
+@v1.get("/catalog")
+@app.get("/api/catalog")  # legacy compat
 async def get_catalog():
     """Return all courses in the training catalog."""
     courses = get_all_courses()
     return {"courses": courses, "total": len(courses)}
 
 
-@app.post("/api/analyze", response_model=AnalyzeResponse)
+@v1.post("/analyze", response_model=AnalyzeResponse)
+@app.post("/api/analyze", response_model=AnalyzeResponse)  # legacy compat
 async def analyze(
     resume_file: UploadFile = File(None),
     resume_text: str = Form(None),
@@ -179,7 +234,7 @@ async def analyze(
     """
     # Handle Resume Input
     final_resume_text = ""
-    if resume_file and resume_file.filename.endswith('.pdf'):
+    if resume_file and resume_file.filename and resume_file.filename.lower().endswith('.pdf'):
         try:
             content = await resume_file.read()
             pdf = PdfReader(io.BytesIO(content))
@@ -223,6 +278,11 @@ async def analyze(
 
     total_hours = sum(c["duration_hours"] for c in pathway)
 
+    # TTR savings: hours saved vs being assigned the full catalog
+    all_catalog = get_all_courses()
+    total_catalog_hours = sum(c["duration_hours"] for c in all_catalog)
+    ttr_saved_hours = total_catalog_hours - total_hours
+
     # Build summary
     if not skill_gap:
         summary = "Great news! Your resume already covers all the skills required by this job description. No additional training is needed."
@@ -232,6 +292,7 @@ async def analyze(
         summary = (
             f"Identified {len(skill_gap)} skill gap(s) across {len(pathway)} training module(s). "
             f"Estimated total learning time: {total_hours} hours. "
+            f"You save ~{ttr_saved_hours} hours compared to a full generic onboarding. "
             f"Your personalized pathway has been optimized from Beginner to Advanced."
         )
 
@@ -242,14 +303,13 @@ async def analyze(
         common_skills=sorted(list(common_skills)),
         pathway=pathway,
         total_hours=total_hours,
+        total_catalog_hours=total_catalog_hours,
+        ttr_saved_hours=max(0, ttr_saved_hours),
         summary=summary,
     )
 
 
 # ─────────────────────────────────────────────
-# Startup
+# Mount versioned router
 # ─────────────────────────────────────────────
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-    print("[InfiOnboard] Server started. Catalog database initialized.")
+app.include_router(v1)

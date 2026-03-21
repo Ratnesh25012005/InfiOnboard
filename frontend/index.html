@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>InfiOnboard — AI-Adaptive Onboarding Engine</title>
-  <meta name="description" content="Intelligent skill-gap analysis and personalized training pathway generator for new hires." />
+  <meta name="description" content="Stop wasting time on generic onboarding. InfiOnboard maps a personalized learning pathway from your resume to your dream role." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -15,265 +15,283 @@
           fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
           colors: {
             brand: { 50:'#f0f4ff', 100:'#e0e9ff', 200:'#c7d7fe', 300:'#a4bcfd', 400:'#8098fa', 500:'#6272f5', 600:'#4f52ea', 700:'#4240cf', 800:'#3737a8', 900:'#333585' },
-            accent: { 400:'#fb923c', 500:'#f97316' }
+            accent: { 400:'#fb923c', 500:'#f97316' },
+            emerald: { 400:'#34d399', 500:'#10b981' },
           }
         }
       }
     }
   </script>
   <style>
-    * { box-sizing: border-box; }
-    body { background: #0a0b1a; font-family: 'Inter', sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #070818; font-family: 'Inter', sans-serif; color: #e2e8f0; }
 
-    .glass {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(12px);
-    }
-    .glass-strong {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(20px);
-    }
+    /* ── Ambient orbs ─────────────────────────────────────────── */
+    .orb-1 { position:fixed; top:-120px; left:50%; transform:translateX(-50%); width:900px; height:500px; border-radius:50%; background:radial-gradient(ellipse, rgba(99,102,241,0.18) 0%, transparent 70%); pointer-events:none; z-index:0; }
+    .orb-2 { position:fixed; bottom:0; right:-100px; width:500px; height:500px; border-radius:50%; background:radial-gradient(ellipse, rgba(168,85,247,0.09) 0%, transparent 70%); pointer-events:none; z-index:0; }
+    .orb-3 { position:fixed; top:40%; left:-80px; width:400px; height:400px; border-radius:50%; background:radial-gradient(ellipse, rgba(251,146,60,0.07) 0%, transparent 70%); pointer-events:none; z-index:0; }
 
-    .gradient-text {
-      background: linear-gradient(135deg, #818cf8 0%, #a78bfa 50%, #fb923c 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+    /* ── Glassmorphism ────────────────────────────────────────── */
+    .glass      { background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(16px); }
+    .glass-md   { background:rgba(255,255,255,0.055); border:1px solid rgba(255,255,255,0.10); backdrop-filter:blur(20px); }
+    .glass-hi   { background:rgba(255,255,255,0.08);  border:1px solid rgba(255,255,255,0.14); backdrop-filter:blur(28px); }
+    .glass-accent { background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); backdrop-filter:blur(16px); }
 
-    .hero-glow {
-      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.25) 0%, transparent 70%);
-    }
+    /* ── Gradient text ────────────────────────────────────────── */
+    .gradient-text { background:linear-gradient(135deg, #818cf8 0%, #a78bfa 45%, #fb923c 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .gradient-text-green { background:linear-gradient(135deg, #34d399 0%, #60a5fa 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 
+    /* ── Buttons ───────────────────────────────────────────────── */
+    .btn-primary { background:linear-gradient(135deg, #5b63f5 0%, #7c69f7 100%); box-shadow:0 4px 20px rgba(99,102,241,0.35); transition:all 0.25s cubic-bezier(0.4,0,0.2,1); }
+    .btn-primary:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 32px rgba(99,102,241,0.5); }
+    .btn-primary:active:not(:disabled) { transform:translateY(0); }
+    .btn-primary:disabled { opacity:0.55; cursor:not-allowed; }
+
+    .btn-ghost { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); transition:all 0.2s; }
+    .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.16); }
+
+    /* ── Navbar ────────────────────────────────────────────────── */
+    .navbar { background:rgba(7,8,24,0.75); border-bottom:1px solid rgba(255,255,255,0.06); backdrop-filter:blur(20px); position:fixed; top:0; left:0; right:0; z-index:50; }
+
+    /* ── Hero badge ─────────────────────────────────────────────  */
+    .hero-badge { background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); }
+
+    /* ── Stats strip ────────────────────────────────────────────  */
+    .stat-divider { width:1px; height:32px; background:rgba(255,255,255,0.08); }
+
+    /* ── Textarea ───────────────────────────────────────────────  */
     textarea {
-      resize: vertical;
-      min-height: 180px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #c7d2fe;
-      background: rgba(10,11,26,0.8);
-      border: 1px solid rgba(99,102,241,0.3);
-      transition: border-color 0.2s, box-shadow 0.2s;
+      resize:vertical; font-family:'JetBrains Mono', monospace; font-size:12.5px;
+      line-height:1.65; color:#c7d2fe; background:rgba(7,8,24,0.85);
+      border:1px solid rgba(99,102,241,0.25); transition:border-color 0.2s, box-shadow 0.2s; width:100%;
     }
-    textarea::placeholder { color: rgba(148,163,184,0.5); }
-    textarea:focus { 
-      outline: none;
-      border-color: rgba(99,102,241,0.7);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
-    }
+    textarea::placeholder { color:rgba(148,163,184,0.4); font-family:'Inter', sans-serif; font-style:italic; }
+    textarea:focus { outline:none; border-color:rgba(99,102,241,0.6); box-shadow:0 0 0 3px rgba(99,102,241,0.1); }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #6272f5 0%, #8098fa 100%);
-      box-shadow: 0 4px 24px rgba(99,102,241,0.4);
-      transition: all 0.2s;
-    }
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(99,102,241,0.5);
-    }
-    .btn-primary:active:not(:disabled) { transform: translateY(0); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    /* ── Drop zone ──────────────────────────────────────────────  */
+    .drop-zone { border:1.5px dashed rgba(99,102,241,0.35); background:rgba(7,8,24,0.7); transition:all 0.25s; cursor:pointer; }
+    .drop-zone:hover, .drop-zone.dragover { background:rgba(99,102,241,0.06); border-color:rgba(99,102,241,0.7); box-shadow:0 0 24px rgba(99,102,241,0.12); }
 
-    /* File Drop Zone */
-    .drop-zone {
-      border: 2px dashed rgba(99,102,241,0.4);
-      background: rgba(10,11,26,0.6);
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-    .drop-zone.dragover {
-      background: rgba(99,102,241,0.1);
-      border-color: rgba(99,102,241,0.8);
-    }
+    /* ── Spinner ────────────────────────────────────────────────  */
+    .spinner { border:2px solid rgba(255,255,255,0.15); border-top:2px solid white; border-radius:50%; width:17px; height:17px; animation:spin 0.75s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* Loading spinner */
-    .spinner {
-      border: 2px solid rgba(255,255,255,0.15);
-      border-top: 2px solid white;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ── Timeline ───────────────────────────────────────────────  */
+    .timeline-item { animation:slideUp 0.45s ease forwards; opacity:0; transform:translateY(18px); }
+    @keyframes slideUp { to { opacity:1; transform:translateY(0); } }
+    .timeline-line { position:absolute; left:19px; top:42px; bottom:-24px; width:2px; background:linear-gradient(180deg, rgba(99,102,241,0.55) 0%, rgba(99,102,241,0.08) 100%); }
 
-    /* Skill pills */
-    .skill-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-    }
-    
-    .exp-badge {
-      font-size: 10px;
-      padding: 1px 6px;
-      border-radius: 999px;
-      margin-left: 6px;
-      background: rgba(0,0,0,0.2);
-    }
+    /* ── Badges ─────────────────────────────────────────────────  */
+    .badge-beginner     { background:rgba(34,197,94,0.12);  color:#4ade80; border:1px solid rgba(34,197,94,0.22); }
+    .badge-intermediate { background:rgba(251,146,60,0.12); color:#fb923c; border:1px solid rgba(251,146,60,0.22); }
+    .badge-advanced     { background:rgba(239,68,68,0.12);  color:#f87171; border:1px solid rgba(239,68,68,0.22); }
 
-    /* Timeline */
-    .timeline-item {
-      animation: slideIn 0.5s ease forwards;
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    @keyframes slideIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* ── Skill pills ────────────────────────────────────────────  */
+    .skill-pill { display:inline-flex; align-items:center; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:500; letter-spacing:0.02em; }
+    .exp-badge  { font-size:9px; padding:1px 5px; border-radius:999px; margin-left:5px; background:rgba(0,0,0,0.25); text-transform:uppercase; letter-spacing:0.04em; }
 
-    .timeline-connector {
-      position: absolute;
-      left: 19px;
-      top: 40px;
-      bottom: -20px;
-      width: 2px;
-      background: linear-gradient(180deg, rgba(99,102,241,0.6) 0%, rgba(99,102,241,0.1) 100%);
-    }
+    /* ── Reasoning box ──────────────────────────────────────────  */
+    .reasoning-box { background:rgba(99,102,241,0.06); border-left:3px solid rgba(99,102,241,0.45); border-radius:0 8px 8px 0; }
 
-    /* Level badges */
-    .badge-beginner { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
-    .badge-intermediate { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
-    .badge-advanced { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    /* ── TTR savings ────────────────────────────────────────────  */
+    .ttr-bar-track { background:rgba(255,255,255,0.07); border-radius:999px; height:6px; overflow:hidden; }
+    .ttr-bar-fill  { height:100%; border-radius:999px; background:linear-gradient(90deg, #34d399, #60a5fa); transition:width 1s cubic-bezier(0.4,0,0.2,1); }
 
-    /* Reasoning trace */
-    .reasoning-box {
-      background: rgba(99,102,241,0.06);
-      border-left: 3px solid rgba(99,102,241,0.5);
-      border-radius: 0 8px 8px 0;
-    }
+    /* ── Section labels ─────────────────────────────────────────  */
+    .section-label { font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(148,163,184,0.6); }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+    /* ── Scrollbar ──────────────────────────────────────────────  */
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.3); border-radius:3px; }
+
+    /* ── Demo tag ───────────────────────────────────────────────  */
+    .demo-tag { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; background:rgba(251,146,60,0.12); color:#fb923c; border:1px solid rgba(251,146,60,0.25); padding:2px 8px; border-radius:999px; }
+
+    /* ── Card hover ─────────────────────────────────────────────  */
+    .course-card { transition:border-color 0.2s, box-shadow 0.2s; }
+    .course-card:hover { border-color:rgba(99,102,241,0.3) !important; box-shadow:0 0 0 1px rgba(99,102,241,0.1); }
+
+    /* ── Input area ─────────────────────────────────────────────  */
+    .input-label { font-size:11.5px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.08em; }
   </style>
 </head>
-<body class="min-h-screen text-slate-100">
+<body class="min-h-screen">
 
-  <div class="fixed inset-0 pointer-events-none hero-glow"></div>
-  <div class="fixed top-60 right-10 w-72 h-72 rounded-full bg-purple-600/5 blur-3xl pointer-events-none"></div>
-  <div class="fixed bottom-20 left-10 w-96 h-96 rounded-full bg-brand-600/5 blur-3xl pointer-events-none"></div>
+  <!-- Ambient orbs -->
+  <div class="orb-1"></div>
+  <div class="orb-2"></div>
+  <div class="orb-3"></div>
 
-  <div class="relative max-w-5xl mx-auto px-4 py-12">
-
-    <header class="text-center mb-14">
-      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs text-brand-300 font-medium mb-6 tracking-wide uppercase">
-        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-        AI-Powered Onboarding Engine
+  <!-- ── Navbar ─────────────────────────────────────────────────── -->
+  <nav class="navbar px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-lg btn-primary flex items-center justify-center">
+        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
       </div>
-      <h1 class="text-5xl font-extrabold tracking-tight mb-4">
-        <span class="gradient-text">infi</span><span class="text-white">Onboard</span>
+      <span class="font-bold text-sm tracking-tight"><span class="gradient-text">infi</span><span class="text-white">Onboard</span></span>
+      <span class="ml-1 text-xs text-slate-600 font-mono">v1.1</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="section-label hidden sm:block">AI-Adaptive Onboarding</span>
+      <a href="/docs" target="_blank" class="btn-ghost text-slate-400 text-xs px-3 py-1.5 rounded-lg font-medium">API Docs</a>
+    </div>
+  </nav>
+
+  <!-- ── Main content ───────────────────────────────────────────── -->
+  <div class="relative z-10 max-w-5xl mx-auto px-4 pt-28 pb-16">
+
+    <!-- ── Hero ─────────────────────────────────────────────────── -->
+    <header class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full hero-badge text-xs text-brand-300 font-semibold mb-7 tracking-wide uppercase">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        Hackathon · AI-Adaptive Onboarding Engine
+      </div>
+      <h1 class="text-5xl sm:text-6xl font-black tracking-tight mb-5 leading-none">
+        <span class="gradient-text">Personalized</span><br/>
+        <span class="text-white">Learning Pathways</span>
       </h1>
       <p class="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
-        Upload a Resume PDF and paste a Job Description. Our Adaptive Pathing Algorithm identifies skillset & experience gaps, mapping your personalized training journey.
+        Upload resume + job description. Our adaptive algorithm identifies every skill gap and builds your personalized training timeline — in seconds.
       </p>
+
+      <!-- Stats -->
+      <div class="inline-flex items-center gap-6 mt-8 px-6 py-3 glass rounded-2xl">
+        <div class="text-center">
+          <div class="text-xl font-bold text-white">16</div>
+          <div class="text-xs text-slate-500 mt-0.5">Courses</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="text-center">
+          <div class="text-xl font-bold text-white">4</div>
+          <div class="text-xs text-slate-500 mt-0.5">Domains</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="text-center">
+          <div class="text-xl font-bold gradient-text-green">0</div>
+          <div class="text-xs text-slate-500 mt-0.5">Hallucinations</div>
+        </div>
+      </div>
     </header>
 
-    <div class="grid md:grid-cols-2 gap-4 mb-6">
-      
-      <!-- Resume Upload -->
-      <div class="glass rounded-2xl p-5 flex flex-col">
-        <div class="flex items-center gap-2 mb-3">
-          <div class="w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center">
-            <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+    <!-- ── Input panel ───────────────────────────────────────────── -->
+    <div class="glass-md rounded-3xl p-6 mb-5">
+      <div class="grid md:grid-cols-2 gap-5">
+
+        <!-- Resume -->
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
+            <label class="input-label">📄 Candidate Resume</label>
+            <button id="demoBtn" onclick="loadDemo()" class="demo-tag cursor-pointer hover:opacity-80 transition-opacity">Try Demo</button>
           </div>
-          <label class="font-semibold text-sm text-slate-200">Candidate Resume (PDF)</label>
+          <div id="dropZone" class="drop-zone rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[160px]" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" class="hidden" accept=".pdf" onchange="handleFileSelect(event)" />
+            <div id="dropIcon" class="mb-3">
+              <svg class="w-10 h-10 text-brand-500 opacity-70 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <p class="text-sm font-medium text-slate-300 mb-1" id="fileNameDisplay">Drag & drop PDF or click to upload</p>
+            <p class="text-xs text-slate-600">PDF documents only · Or paste text below</p>
+          </div>
+
+          <!-- Paste fallback — always visible -->
+          <div class="mt-3">
+            <label class="input-label mb-1.5 block">or paste resume text</label>
+            <textarea id="resumeTextFallback" class="rounded-xl p-3" style="min-height:100px;" placeholder="Paste resume text here (optional if PDF uploaded)..."></textarea>
+          </div>
         </div>
-        
-        <div id="dropZone" class="drop-zone flex-1 rounded-xl flex flex-col items-center justify-center p-6 text-center" onclick="document.getElementById('fileInput').click()">
-          <input type="file" id="fileInput" class="hidden" accept=".pdf" onchange="handleFileSelect(event)">
-          <svg class="w-10 h-10 text-brand-400 mb-3 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+
+        <!-- JD -->
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
+            <label class="input-label" for="jdInput">💼 Job Description</label>
+            <span class="text-xs text-slate-600 bg-white/5 px-2 py-0.5 rounded border border-white/8">Cross-Domain</span>
+          </div>
+          <textarea id="jdInput" class="rounded-2xl p-4" style="min-height:340px;" placeholder="Paste the full job description here...
+
+Example:
+We're looking for a Senior Python developer with strong React and AWS experience. The ideal candidate has 5+ years in cloud infrastructure, Docker, and machine learning. Experience with TypeScript is a plus."></textarea>
+          <p class="text-xs text-slate-600 mt-2">Supports: Tech · GenAI · Sales · Warehouse · HR roles</p>
+        </div>
+      </div>
+
+      <!-- Analyze button -->
+      <div class="flex justify-center mt-6">
+        <button id="analyzeBtn" onclick="analyzeGap()" class="btn-primary text-white font-bold px-12 py-4 rounded-2xl text-base flex items-center gap-2.5 min-w-[220px] justify-center">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
-          <p class="text-sm font-medium text-slate-200 mb-1" id="fileNameDisplay">Click to upload or drag & drop</p>
-          <p class="text-xs text-slate-500">PDF documents only</p>
-        </div>
-        
-        <div class="mt-3 relative hidden" id="textFallbackWrap">
-          <textarea
-            id="resumeTextFallback"
-            class="w-full rounded-xl p-3"
-            placeholder="Or paste resume text here..."
-            style="min-height: 120px;"
-          ></textarea>
-        </div>
+          Analyze Skill Gap
+        </button>
       </div>
+    </div>
 
-      <!-- JD -->
-      <div class="glass rounded-2xl p-5">
+    <!-- Error -->
+    <div id="errorBox" class="hidden glass rounded-2xl p-4 border border-red-500/25 text-red-400 text-sm mb-5 flex items-center gap-3">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span id="errorMsg"></span>
+    </div>
+
+    <!-- ── Results ────────────────────────────────────────────────── -->
+    <div id="results" class="hidden space-y-5">
+
+      <!-- Summary card -->
+      <div id="summaryCard" class="glass-hi rounded-3xl p-6"></div>
+
+      <!-- TTR savings bar -->
+      <div id="ttrCard" class="glass rounded-2xl p-5 hidden">
         <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-accent-500/20 flex items-center justify-center">
-                <svg class="w-4 h-4 text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-            </div>
-            <label class="font-semibold text-sm text-slate-200" for="jdInput">Job Description</label>
-            </div>
-            <span class="text-xs text-slate-500 bg-black/20 px-2 py-1 rounded">Cross-Domain Supported</span>
+          <div class="flex items-center gap-2">
+            <span class="text-base">⏱</span>
+            <span class="font-semibold text-sm text-slate-200">Time Saved vs Full Onboarding</span>
+          </div>
+          <span id="ttrSavedLabel" class="text-emerald-400 font-bold text-sm"></span>
         </div>
-        <textarea
-          id="jdInput"
-          class="w-full rounded-xl p-3 h-[240px]"
-        >Looking for an operational leader with B2B Sales experience and Warehouse logistics knowledge. Must be familiar with HR compliance, CRM pipelines, and have a track record of driving outbound growth. Customer Success experience is a major plus.</textarea>
+        <div class="ttr-bar-track">
+          <div id="ttrBarFill" class="ttr-bar-fill" style="width:0%"></div>
+        </div>
+        <div class="flex justify-between mt-1.5 text-xs text-slate-600">
+          <span>Your pathway</span>
+          <span id="ttrFullLabel"></span>
+        </div>
       </div>
-    </div>
 
-    <!-- Analyze Button -->
-    <div class="flex justify-center mb-10">
-      <button
-        id="analyzeBtn"
-        onclick="analyzeGap()"
-        class="btn-primary text-white font-semibold px-10 py-3.5 rounded-xl text-base flex items-center gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        Analyze Skill Gap
-      </button>
-    </div>
-
-    <!-- Results Section -->
-    <div id="results" class="hidden space-y-6">
-
-      <div id="summaryCard" class="glass-strong rounded-2xl p-6"></div>
-
-      <!-- Skills Overview -->
+      <!-- Skills overview -->
       <div id="skillsOverview" class="grid md:grid-cols-3 gap-4"></div>
 
-      <!-- Learning Pathway -->
-      <div id="pathwaySection" class="glass rounded-2xl p-6">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-9 h-9 rounded-xl bg-brand-600/20 flex items-center justify-center">
+      <!-- Learning pathway -->
+      <div id="pathwaySection" class="glass rounded-3xl p-6">
+        <div class="flex items-center gap-3 mb-7">
+          <div class="w-10 h-10 rounded-xl glass-accent flex items-center justify-center">
             <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
           </div>
           <div>
             <h2 class="font-bold text-lg text-white">Personalized Learning Pathway</h2>
-            <p class="text-xs text-slate-400">Ordered Beginner → Advanced · Grounded in course catalog</p>
+            <p class="text-xs text-slate-500 mt-0.5">Ordered Beginner → Advanced · Grounded in course catalog · Zero hallucinations</p>
           </div>
         </div>
-        <div id="timeline" class="space-y-4"></div>
+        <div id="timeline" class="space-y-5"></div>
       </div>
     </div>
 
-    <!-- Error -->
-    <div id="errorBox" class="hidden glass rounded-2xl p-5 border border-red-500/30 text-red-400 text-sm"></div>
-
-    <footer class="text-center mt-14 text-slate-600 text-xs">
-      InfiOnboard · NLP Simulated Extraction · Hackathon Submission
+    <!-- Footer -->
+    <footer class="text-center mt-16 space-y-2">
+      <div class="flex items-center justify-center gap-4 text-xs text-slate-700">
+        <span>InfiOnboard v1.1</span>
+        <span>·</span>
+        <span>Adaptive Pathing Algorithm</span>
+        <span>·</span>
+        <span>Zero Hallucination · SQLite Grounded</span>
+        <span>·</span>
+        <a href="/docs" class="hover:text-slate-500 transition-colors">API Docs</a>
+      </div>
+      <div class="text-xs text-slate-800">Hackathon Submission · All datasets cited in README</div>
     </footer>
   </div>
 
@@ -281,19 +299,43 @@
     const API_BASE = window.location.origin;
     let selectedFile = null;
 
-    // Drag and drop handlers
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    // ── Demo data ──────────────────────────────────────────────────
+    const DEMO_RESUME = `Senior Software Engineer with 6+ years of experience.
 
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('dragover');
-    });
-    dropZone.addEventListener('drop', (e) => {
+Python expert with extensive Django and FastAPI development. Strong SQL skills using PostgreSQL and advanced query optimization. 
+Familiar with JavaScript and some React basics. Led agile scrum teams as tech lead.
+
+Experience: Senior Python Developer at TechCorp (5+ years). Built REST APIs serving 1M+ users.
+Skills: Python, SQL, REST API, Agile, Scrum.`;
+
+    const DEMO_JD = `We are looking for a Full-Stack Engineer with strong cloud experience.
+
+Required Skills:
+- Expert-level React (state management, hooks, Next.js)
+- AWS cloud infrastructure (EC2, S3, Lambda, IAM)
+- Docker & containerization (Kubernetes a plus)
+- Machine Learning exposure (scikit-learn, model deployment)
+- TypeScript proficiency
+- Generative AI / LLM integration experience
+
+The ideal candidate has 5+ years in modern web stacks and is comfortable with CI/CD pipelines, cloud architecture, and data visualization tools like Tableau.`;
+
+    function loadDemo() {
+      document.getElementById('resumeTextFallback').value = DEMO_RESUME;
+      document.getElementById('jdInput').value = DEMO_JD;
+      selectedFile = null;
+      document.getElementById('fileNameDisplay').textContent = 'Drag & drop PDF or click to upload';
+      document.getElementById('demoBtn').textContent = '✓ Loaded';
+      setTimeout(() => document.getElementById('demoBtn').textContent = 'Try Demo', 2000);
+    }
+
+    // ── Drag & drop ────────────────────────────────────────────────
+    const dropZone   = document.getElementById('dropZone');
+    const fileInput  = document.getElementById('fileInput');
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
       if (e.dataTransfer.files.length) {
@@ -305,172 +347,209 @@
     function handleFileSelect(event) {
       if (event.target.files.length > 0) {
         selectedFile = event.target.files[0];
-        fileNameDisplay.innerHTML = `<span class="text-brand-400 border-b border-brand-400/30 pb-0.5">${selectedFile.name}</span>`;
-        // Hide text fallback if file is uploaded
-        document.getElementById('textFallbackWrap').classList.add('hidden');
+        const display = document.getElementById('fileNameDisplay');
+        display.innerHTML = `<span class="text-brand-400 font-medium">📎 ${selectedFile.name}</span>`;
+        document.getElementById('resumeTextFallback').placeholder = 'PDF uploaded — paste text here as additional context (optional)';
       }
     }
 
-    // Toggle text fallback simply by double-clicking dropzone (hidden feature)
-    fileNameDisplay.ondblclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('textFallbackWrap').classList.toggle('hidden');
-    }
-
-    function setLoading(loading) {
+    // ── Loading state ──────────────────────────────────────────────
+    function setLoading(on) {
       const btn = document.getElementById('analyzeBtn');
-      btn.disabled = loading;
-      btn.innerHTML = loading
-        ? `<span class="spinner"></span> Parsing & Analyzing...`
-        : `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Analyze Skill Gap`;
+      btn.disabled = on;
+      btn.innerHTML = on
+        ? `<span class="spinner"></span><span>Parsing & Analyzing...</span>`
+        : `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Analyze Skill Gap`;
     }
 
+    // ── Helpers ────────────────────────────────────────────────────
     function levelBadge(level) {
-      const cls = { 'Beginner': 'badge-beginner', 'Intermediate': 'badge-intermediate', 'Advanced': 'badge-advanced' };
-      return `<span class="skill-pill ${cls[level] || ''}">${level}</span>`;
+      const map = { Beginner:'badge-beginner', Intermediate:'badge-intermediate', Advanced:'badge-advanced' };
+      return `<span class="skill-pill ${map[level]||''} text-xs">${level}</span>`;
     }
 
-    function skillPill(skillObj, type) {
-      // skillObj can be just a string (for gap) or {skill: name, level: exp} (for resume/jd)
-      const isDict = typeof skillObj === 'object';
-      const name = isDict ? skillObj.skill : skillObj;
-      const level = isDict ? skillObj.level : '';
-      
+    function skillPill(item, type) {
+      const isObj = typeof item === 'object';
+      const name  = isObj ? item.skill : item;
+      const level = isObj ? item.level : '';
       const styles = {
-        resume: 'background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)',
-        jd: 'background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.25)',
-        gap: 'background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25)',
+        resume: 'background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.2)',
+        jd:     'background:rgba(251,146,60,0.1);color:#fb923c;border:1px solid rgba(251,146,60,0.2)',
+        gap:    'background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)',
       };
-      
-      const levelHtml = level ? `<span class="exp-badge">${level[0]}</span>` : '';
-      return `<span class="skill-pill" style="${styles[type]}">${name}${levelHtml}</span>`;
+      const badge = level ? `<span class="exp-badge">${level[0]}</span>` : '';
+      return `<span class="skill-pill" style="${styles[type]}">${name}${badge}</span>`;
     }
 
     function renderSkillBox(title, skills, type, icon, color) {
       const pills = skills.length
         ? skills.map(s => skillPill(s, type)).join(' ')
-        : `<span class="text-slate-500 text-xs">None detected</span>`;
+        : `<span class="text-slate-600 text-xs">None detected</span>`;
       return `
-        <div class="glass rounded-xl p-4">
+        <div class="glass rounded-2xl p-4">
           <div class="flex items-center gap-2 mb-3">
-            <span class="text-lg">${icon}</span>
-            <span class="font-semibold text-sm" style="color:${color}">${title}</span>
-            <span class="ml-auto text-xs text-slate-500">${skills.length}</span>
+            <span class="text-base">${icon}</span>
+            <span class="font-semibold text-xs tracking-wide" style="color:${color}">${title}</span>
+            <span class="ml-auto text-xs font-bold" style="color:${color}">${skills.length}</span>
           </div>
           <div class="flex flex-wrap gap-1.5">${pills}</div>
         </div>`;
     }
 
-    function renderCourseCard(course, index) {
-      const delay = index * 80;
+    function renderCourseCard(course, index, total) {
+      const delay = index * 70;
+      const isLast = index === total - 1;
       return `
-        <div class="timeline-item relative pl-12" style="animation-delay:${delay}ms">
-          <div class="absolute left-0 top-0 w-10 h-10 rounded-full bg-brand-600/20 border-2 border-brand-500/40 flex items-center justify-center text-brand-400 font-bold text-sm flex-shrink-0">${index + 1}</div>
-          ${index < 99 ? '<div class="timeline-connector"></div>' : ''}
-          <div class="glass rounded-xl p-5 hover:border-brand-500/30 transition-colors">
-            <div class="flex items-start justify-between gap-3 mb-3">
+        <div class="timeline-item relative pl-14" style="animation-delay:${delay}ms">
+          <div class="absolute left-0 top-0 w-10 h-10 rounded-full glass-accent border border-brand-500/30 flex items-center justify-center text-brand-300 font-bold text-sm flex-shrink-0">${index + 1}</div>
+          ${!isLast ? '<div class="timeline-line"></div>' : ''}
+          <div class="glass course-card rounded-2xl p-5 border border-transparent">
+            <div class="flex items-start justify-between gap-3 mb-4">
               <div>
-                <h3 class="font-semibold text-white text-base leading-tight">${course.title}</h3>
-                <p class="text-slate-400 text-sm mt-1 leading-relaxed">${course.description}</p>
+                <h3 class="font-bold text-white text-base leading-snug">${course.title}</h3>
+                <p class="text-slate-400 text-sm mt-1.5 leading-relaxed">${course.description}</p>
               </div>
-              <div class="flex flex-col items-end gap-1 flex-shrink-0">
+              <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
                 ${levelBadge(course.level)}
-                <span class="text-xs text-slate-500 mt-1">⏱ ${course.duration_hours}h</span>
+                <span class="text-xs text-slate-500 font-mono mt-0.5">${course.duration_hours}h</span>
               </div>
             </div>
-            <!-- Reasoning Trace & Resource Link -->
-            <div class="mt-3 flex flex-col gap-2">
-              <div class="reasoning-box px-4 py-3 rounded-r-xl">
-                <div class="flex items-center gap-2 mb-1">
-                  <svg class="w-3.5 h-3.5 text-brand-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                  <span class="text-brand-400 text-xs font-semibold tracking-wide uppercase">Reasoning Trace</span>
-                </div>
-                <p class="font-mono text-xs text-slate-400 leading-relaxed">${course.reasoning}</p>
+            <!-- Reasoning trace -->
+            <div class="reasoning-box px-4 py-3 rounded-r-xl mb-3">
+              <div class="flex items-center gap-2 mb-1.5">
+                <svg class="w-3.5 h-3.5 text-brand-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                <span class="text-brand-400 text-xs font-bold tracking-widest uppercase">Reasoning Trace</span>
               </div>
-              <a href="${course.resource_link}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 w-fit transition-all ml-1 w-max">
-                ${course.resource_type === 'Video' ? '▶️' : course.resource_type === 'Documentation' ? '📄' : '💻'}
-                Access ${course.resource_type}
-                <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-              </a>
+              <p class="font-mono text-xs text-slate-400 leading-relaxed">${course.reasoning}</p>
             </div>
+            <!-- Resource link -->
+            <a href="${course.resource_link}" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/4 hover:bg-white/8 border border-white/8 hover:border-white/14 text-xs font-medium text-slate-300 transition-all">
+              ${course.resource_type === 'Video' ? '▶️' : course.resource_type === 'Documentation' ? '📄' : '💻'}
+              Access ${course.resource_type}
+              <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
           </div>
         </div>`;
     }
 
+    // ── Main analyze function ──────────────────────────────────────
     async function analyzeGap() {
       const resumeText = document.getElementById('resumeTextFallback').value.trim();
-      const jd = document.getElementById('jdInput').value.trim();
-      const errBox = document.getElementById('errorBox');
-      const results = document.getElementById('results');
+      const jd         = document.getElementById('jdInput').value.trim();
+      const errBox     = document.getElementById('errorBox');
+      const errMsg     = document.getElementById('errorMsg');
+      const results    = document.getElementById('results');
 
       errBox.classList.add('hidden');
       results.classList.add('hidden');
 
-      if (!selectedFile && !resumeText) { errBox.textContent = 'Please upload a PDF or double-tap the box to paste text.'; errBox.classList.remove('hidden'); return; }
-      if (!jd) { errBox.textContent = 'Please enter the job description text.'; errBox.classList.remove('hidden'); return; }
+      if (!selectedFile && !resumeText) {
+        errMsg.textContent = 'Please upload a PDF or paste resume text.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+      if (!jd) {
+        errMsg.textContent = 'Please enter the job description.';
+        errBox.classList.remove('hidden');
+        return;
+      }
 
       setLoading(true);
-      
+
       const formData = new FormData();
-      if (selectedFile) formData.append('resume_file', selectedFile);
-      if (resumeText) formData.append('resume_text', resumeText);
+      if (selectedFile)  formData.append('resume_file', selectedFile);
+      if (resumeText)    formData.append('resume_text', resumeText);
       formData.append('jd_text', jd);
 
       try {
-        const resp = await fetch(`${API_BASE}/api/analyze`, {
-          method: 'POST',
-          body: formData
-        });
-
+        const resp = await fetch(`${API_BASE}/api/analyze`, { method: 'POST', body: formData });
         if (!resp.ok) {
           const err = await resp.json();
           throw new Error(err.detail || 'Server error');
         }
-
         const data = await resp.json();
         renderResults(data);
       } catch (e) {
-        errBox.textContent = `Error: ${e.message}`;
+        errMsg.textContent = `Error: ${e.message}`;
         errBox.classList.remove('hidden');
       } finally {
         setLoading(false);
       }
     }
 
+    // ── Render results ─────────────────────────────────────────────
     function renderResults(data) {
-      const hasCourses = data.pathway.length > 0;
-      const summaryIcon = data.skill_gap.length === 0 ? '🎉' : '🎯';
-      
+      const hasGap     = data.skill_gap.length > 0;
+      const hasCourses = data.pathway.length  > 0;
+      const icon       = hasGap ? '🎯' : '🎉';
+
+      // Summary card
       document.getElementById('summaryCard').innerHTML = `
         <div class="flex items-start gap-4">
-          <div class="text-3xl">${summaryIcon}</div>
+          <div class="text-4xl">${icon}</div>
           <div class="flex-1">
-            <h2 class="font-bold text-white text-lg mb-1">Analysis Complete</h2>
-            <p class="text-slate-300 text-sm leading-relaxed">${data.summary}</p>
-            ${hasCourses ? `<div class="flex gap-4 mt-4 text-xs text-slate-400">
-              <span>🧩 <strong class="text-white">${data.skill_gap.length}</strong> gaps identified</span>
-              <span>📚 <strong class="text-white">${data.pathway.length}</strong> courses assigned</span>
-              <span>⏱ <strong class="text-white">${data.total_hours}h</strong> total learning</span>
+            <div class="flex items-center gap-3 mb-1">
+              <h2 class="font-bold text-white text-xl">Analysis Complete</h2>
+              ${hasCourses ? `<span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Pathway Ready</span>` : ''}
+            </div>
+            <p class="text-slate-400 text-sm leading-relaxed">${data.summary}</p>
+            ${hasCourses ? `
+            <div class="flex flex-wrap gap-5 mt-5">
+              <div class="text-center">
+                <div class="text-2xl font-black text-white">${data.skill_gap.length}</div>
+                <div class="text-xs text-slate-500 mt-0.5">Gaps Found</div>
+              </div>
+              <div class="stat-divider self-center"></div>
+              <div class="text-center">
+                <div class="text-2xl font-black text-white">${data.pathway.length}</div>
+                <div class="text-xs text-slate-500 mt-0.5">Courses Assigned</div>
+              </div>
+              <div class="stat-divider self-center"></div>
+              <div class="text-center">
+                <div class="text-2xl font-black text-brand-400">${data.total_hours}h</div>
+                <div class="text-xs text-slate-500 mt-0.5">Total Training</div>
+              </div>
+              ${data.ttr_saved_hours > 0 ? `
+              <div class="stat-divider self-center"></div>
+              <div class="text-center">
+                <div class="text-2xl font-black gradient-text-green">~${data.ttr_saved_hours}h</div>
+                <div class="text-xs text-slate-500 mt-0.5">Hours Saved</div>
+              </div>` : ''}
             </div>` : ''}
           </div>
         </div>`;
 
-      // Convert dicts {"skill": "level"} to array objects for rendering
-      const formatDict = (dict) => Object.entries(dict).map(([k, v]) => ({skill: k, level: v}));
-      
-      document.getElementById('skillsOverview').innerHTML =
-        renderSkillBox('Resume NLP Output', formatDict(data.resume_skills), 'resume', '📄', '#4ade80') +
-        renderSkillBox('JD Extracted Requirements', formatDict(data.jd_skills), 'jd', '💼', '#fb923c') +
-        renderSkillBox('Identified Skill Gaps', data.skill_gap, 'gap', '🔍', '#f87171');
+      // TTR bar
+      if (hasCourses && data.ttr_saved_hours > 0) {
+        const pct = ((data.total_hours / data.total_catalog_hours) * 100).toFixed(1);
+        document.getElementById('ttrCard').classList.remove('hidden');
+        document.getElementById('ttrSavedLabel').textContent = `~${data.ttr_saved_hours}h saved`;
+        document.getElementById('ttrFullLabel').textContent  = `Full catalog: ${data.total_catalog_hours}h`;
+        setTimeout(() => {
+          document.getElementById('ttrBarFill').style.width = `${pct}%`;
+        }, 300);
+      }
 
+      // Skills overview
+      const fmt = dict => Object.entries(dict).map(([k, v]) => ({ skill: k, level: v }));
+      document.getElementById('skillsOverview').innerHTML =
+        renderSkillBox('Resume Skills', fmt(data.resume_skills), 'resume', '📄', '#4ade80') +
+        renderSkillBox('JD Requirements', fmt(data.jd_skills),   'jd',     '💼', '#fb923c') +
+        renderSkillBox('Skill Gaps',      data.skill_gap,         'gap',    '🔍', '#f87171');
+
+      // Timeline
       const timeline = document.getElementById('timeline');
-      if (data.pathway.length === 0) {
-        timeline.innerHTML = `<div class="text-center py-8 text-slate-500">
-          <div class="text-4xl mb-3">${data.skill_gap.length === 0 ? '✅' : '📭'}</div>
-          <p>${data.skill_gap.length === 0 ? 'No training needed — resume fully matches JD requirements!' : 'No matching courses found in the current catalog for the identified gaps.'}</p>
-        </div>`;
+      if (!hasCourses) {
+        timeline.innerHTML = `
+          <div class="text-center py-10 text-slate-500">
+            <div class="text-5xl mb-4">${data.skill_gap.length === 0 ? '✅' : '📭'}</div>
+            <p class="text-sm">${data.skill_gap.length === 0
+              ? 'No training needed — resume fully matches JD requirements!'
+              : 'No matching courses found for the identified gaps. Contact HR for specialized training.'}</p>
+          </div>`;
       } else {
-        timeline.innerHTML = data.pathway.map((course, i) => renderCourseCard(course, i)).join('');
+        timeline.innerHTML = data.pathway.map((c, i) => renderCourseCard(c, i, data.pathway.length)).join('');
       }
 
       document.getElementById('results').classList.remove('hidden');
