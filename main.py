@@ -45,8 +45,10 @@ app.add_middleware(
 )
 
 # Serve frontend static files
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend-react", "dist")
+# Mount Vite's asset folder specifically to match the build output /assets/
+if os.path.exists(os.path.join(FRONTEND_DIR, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="assets")
 
 # ─────────────────────────────────────────────
 # Skill Keyword Taxonomy
